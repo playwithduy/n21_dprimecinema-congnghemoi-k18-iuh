@@ -1,0 +1,183 @@
+/* ================= MOVIES PAGE ================= */
+.movies-page {
+  padding: 40px 0 60px;
+}
+
+/* TABS */
+.movies-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  border-bottom: 2px solid rgba(255,255,255,0.08);
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  padding: 12px 32px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #aaa;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+  letter-spacing: 0.5px;
+}
+
+.tab-btn:hover { color: #fff; }
+
+.tab-btn.active {
+  color: #fff;
+  border-bottom-color: #e50914;
+}
+
+/* GRID */
+.movies-grid-inner {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 22px;
+}
+
+/* CARD */
+.mv-card {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  color: #fff;
+}
+
+.mv-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.6);
+}
+
+.mv-card-poster {
+  display: block;
+  position: relative;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+}
+
+.mv-card-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s;
+}
+
+.mv-card:hover .mv-card-poster img {
+  transform: scale(1.05);
+}
+
+.mv-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%);
+  display: flex;
+  align-items: flex-end;
+  padding: 10px;
+}
+
+.mv-age {
+  background: #e50914;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.mv-badge-soon {
+  background: #f39c12;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.mv-card-info {
+  padding: 10px 12px 6px;
+}
+
+.mv-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mv-card-meta {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 4px;
+}
+
+.mv-card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px 12px;
+}
+
+.mv-btn-detail,
+.mv-btn-buy {
+  flex: 1;
+  padding: 7px 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  letter-spacing: 0.4px;
+  transition: all 0.2s;
+}
+
+.mv-btn-detail {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+}
+
+.mv-btn-detail:hover { background: rgba(255,255,255,0.1); }
+
+.mv-btn-buy {
+  background: linear-gradient(135deg, #e50914, #8e0000);
+  color: #fff;
+}
+
+.mv-btn-buy:hover {
+  background: linear-gradient(135deg, #ff1a1a, #c00);
+  box-shadow: 0 4px 14px rgba(229,9,20,0.5);
+}
+
+/* XEM THÊM */
+.movies-load-more {
+  display: block;
+  margin: 36px auto 0;
+  padding: 13px 48px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(0,0,0,0.35);
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.movies-load-more:hover {
+  background: linear-gradient(135deg, #d32f2f, #8e0000);
+  border-color: #d32f2f;
+  transform: translateY(-3px);
+  box-shadow: 0 14px 35px rgba(211,47,47,0.5);
+}

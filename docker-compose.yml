@@ -1,0 +1,146 @@
+services:
+  # --- DATABASE ---
+  db-main:
+    image: mysql:8.0
+    container_name: dprime-db-main
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: movie_db
+    volumes:
+      - ./auth_db.sql:/docker-entrypoint-initdb.d/01-auth.sql
+      - ./movie_db.sql:/docker-entrypoint-initdb.d/02-movie.sql
+      - ./booking_db.sql:/docker-entrypoint-initdb.d/03-booking.sql
+      - db_main_data:/var/lib/mysql
+    networks:
+      - dprime-network
+
+  # --- MICROSERVICES (NODE.JS) ---
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: dprime-api-gateway
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - movie-service
+      - booking-service
+    networks:
+      - dprime-network
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+    container_name: dprime-auth-service
+    env_file: ./services/auth-service/.env
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  movie-service:
+    build:
+      context: ./services/movie-service
+    container_name: dprime-movie-service
+    env_file: ./services/movie-service/.env
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  booking-service:
+    build:
+      context: ./services/booking-service
+    container_name: dprime-booking-service
+    env_file: ./services/booking-service/.env
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  blog-service:
+    build:
+      context: ./services/blog-service
+    container_name: dprime-blog-service
+    env_file: ./services/blog-service/.env
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  forum-service:
+    build:
+      context: ./services/forum-service
+    container_name: dprime-forum-service
+    env_file: ./services/forum-service/.env
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+      - PORT=5555
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  socket-service:
+    build:
+      context: ./services/socket-service
+    container_name: dprime-socket-service
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    ports:
+      - "3005:3005"
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  # --- WEB LAYER (PHP) ---
+  web-frontend:
+    build:
+      context: ./frontend
+    container_name: dprime-web-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/public:/var/www/html
+    networks:
+      - dprime-network
+
+  web-admin:
+    build:
+      context: ./admin
+    container_name: dprime-web-admin
+    ports:
+      - "8080:80"
+    volumes:
+      - ./admin:/var/www/html
+    networks:
+      - dprime-network
+
+networks:
+  dprime-network:
+    driver: bridge
+
+volumes:
+  db_main_data:

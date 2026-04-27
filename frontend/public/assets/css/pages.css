@@ -1,0 +1,353 @@
+/* ===== MOVIE SECTION ===== */
+.movie-section {
+    padding: 40px 0;
+}
+
+/* ===== NEW MOVIE SLIDER STYLES ===== */
+.movie-lists-section {
+    width: 1400px; /* Expand viewport */
+    max-width: 95%;
+    margin: 0 auto;
+}
+
+.movie-slider-container {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 10px 50px 20px; /* Give room for navigation buttons on the sides */
+}
+
+.movie-track-wrapper {
+    overflow: hidden; /* Hide overflow for smooth slide */
+    width: 100%; /* Full width within padded container */
+    margin: 0 auto;
+}
+
+.movie-track {
+    display: flex;
+    gap: 20px;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+}
+
+.slider-nav {
+    position: absolute;
+    top: 35%; /* Center on poster part */
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    font-size: 20px;
+    color: #111;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.slider-nav:hover {
+    background: #e50914;
+    color: #fff;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.prev-movie-btn { left: 0; }
+.next-movie-btn { right: 0; }
+
+
+/* ===== PREMIUM MOVIE CARD ===== */
+.movie-card {
+    position: relative;
+    background: transparent;
+    text-decoration: none;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    display: block; /* Mặc định là block để tương thích CSS Grid ở các trang khác */
+    width: 100%;
+}
+
+/* Kéo cứng width khi nằm trong slider (trang chủ) để chống lỗi ảnh phình to */
+.movie-track .movie-card {
+    width: calc((100% - 80px) / 5);
+    min-width: 0; 
+    flex: 0 0 auto;
+}
+
+.movie-card:hover {
+    transform: scale(1.03) translateY(-5px);
+}
+
+/* ===== POSTER AREA ===== */
+.movie-poster-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 2 / 3;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+}
+
+.movie-poster-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: 0.3s;
+}
+
+.movie-card:hover .movie-poster-wrap img {
+    filter: brightness(0.7);
+}
+
+/* Tiêu điểm Play Button (giữa poster) */
+.play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: 0.3s;
+    z-index: 3;
+}
+
+.play-overlay i {
+    color: #fff;
+    font-size: 18px;
+    margin-left: 3px;
+}
+
+.movie-card:hover .play-overlay {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Số thứ tự TO CỰC TO (bên ngoài poster) */
+.movie-rank-num {
+    position: absolute;
+    bottom: 60px; /* Adjust so it sits at the bottom edge of the poster */
+    left: -10px;
+    font-family: 'Bebas Neue', 'Impact', sans-serif;
+    font-size: 85px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 5px 12px rgba(0,0,0,1);
+    -webkit-text-stroke: 1px rgba(0,0,0,0.5); /* Viền mỏng */
+    z-index: 6; /* Đẩy lên trên cùng */
+    line-height: 1;
+    font-style: italic;
+    opacity: 0.95;
+    pointer-events: none;
+}
+
+/* Chữ Coming Soon nổi bật (thay cho số thứ tự) */
+.movie-coming-soon-tag {
+    position: absolute;
+    bottom: 62px;
+    left: -8px;
+    font-family: 'Bebas Neue', 'Impact', sans-serif;
+    font-size: 46px; /* To hơn xíu */
+    font-weight: bold;
+    color: #fff; /* Chữ trắng */
+    text-shadow: 2px 5px 12px rgba(0,0,0,1); /* Bóng đen cực đậm để làm nổi chữ trắng */
+    -webkit-text-stroke: 1px rgba(0,0,0,0.5);
+    z-index: 6;
+    line-height: 1;
+    font-style: italic;
+    transform: rotate(-4deg);
+    pointer-events: none;
+}
+
+/* TAGS: 18+, SNEAKSHOW... */
+.movie-tags {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    gap: 4px;
+    z-index: 5;
+}
+
+.tag-age {
+    background: #f39c12; /* cam/vàng tuỳ age */
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.tag-age.age-18 { background: #e50914; } /* 18+ là đỏ */
+.tag-age.age-16 { background: #d35400; }
+.tag-age.age-13 { background: #f1c40f; color:#000; }
+
+.tag-special {
+    background: #0088cc; /* Xanh cho sneakshow */
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.tag-special.pre-order { background: #e50914; } /* Đỏ cho đặt trước */
+.tag-special.hot { background: #27ae60; } /* Xanh lá cho đặc biệt/sớm */
+
+/* ===== INFO AREA (Dưới poster) ===== */
+.movie-info {
+    padding: 12px 0 0 0;
+    color: #fff;
+}
+
+.movie-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.5px;
+}
+
+.movie-meta {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.movie-rating {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.movie-rating i {
+    color: #f1c40f;
+    font-size: 11px;
+}
+
+/* NÚT MUA VÉ (TUỲ CHỌN CHO PHẦN INFO HOẶC OVERLAY) */
+/* (Thiết kế mới thường bấm chìm hoặc hiện khi hover) */
+.movie-actions {
+    display: none; /* Ẩn các nút default cũ */
+}
+
+
+/* ===== BOOKING MODAL (CINEMA THEME) ===== */
+.booking-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.75);
+    backdrop-filter: blur(6px);          /* 🔥 mờ nền */
+    z-index: 9999;
+}
+
+/* khung modal */
+.booking-box {
+    background: linear-gradient(
+        to bottom,
+        #0c0c0c,
+        #1a0000
+    );
+    width: 90%;
+    max-width: 1100px;
+    margin: 50px auto;
+    padding: 22px;
+    border-radius: 12px;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    box-shadow:
+        0 0 0 1px rgba(255,0,0,.15),
+        0 20px 60px rgba(0,0,0,.8);
+    color: #fff;
+}
+
+/* ===== HEADER ===== */
+.booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,.15);
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+}
+
+.booking-header h3 {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: 1px;
+    color: #ff2b2b;
+}
+
+/* nút đóng */
+.close-booking {
+    font-size: 28px;
+    cursor: pointer;
+    color: #fff;
+    transition: .2s;
+}
+
+.close-booking:hover {
+    color: #ff2b2b;
+}
+
+/* ===== NỘI DUNG SUẤT CHIẾU ===== */
+#bookingContent h4 {
+    margin: 18px 0 10px;
+    font-size: 15px;
+    color: #ffb3b3;
+}
+
+/* nút suất chiếu */
+#bookingContent button {
+    margin: 5px;
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.05);
+    color: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    transition: .2s;
+}
+
+/* hover */
+#bookingContent button:hover {
+    background: #e50914;
+    border-color: #e50914;
+    box-shadow: 0 0 10px rgba(229,9,20,.6);
+}
+
+/* nút được chọn */
+#bookingContent button.active {
+    background: #e50914;
+    border-color: #e50914;
+    box-shadow: 0 0 12px rgba(229,9,20,.8);
+}

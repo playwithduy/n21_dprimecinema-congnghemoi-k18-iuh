@@ -1,0 +1,252 @@
+/* ============================================================ */
+/* REVIEW SECTION (LIGHT MODE - LẤY CẢM HỨNG TỪ MOMO)           */
+/* ============================================================ */
+
+.review-section {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #ffffff; /* Nền trắng tinh */
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    color: #333; /* Chữ tối màu */
+    clear: both;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Block nổi bật chút xíu */
+}
+
+.review-header {
+    border-bottom: 1px solid #eaeaea;
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.review-header h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #000;
+    text-transform: none; /* Trả lại chữ in thường như MoMo */
+    font-weight: 700;
+}
+
+.review-score-overall {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.review-score-overall .star {
+    color: #ffc107;
+    font-size: 36px;
+}
+
+.review-score-overall .big-score {
+    font-size: 42px;
+    font-weight: 800;
+    color: #000;
+}
+
+.review-score-overall .small-score {
+    font-size: 16px;
+    color: #666;
+}
+
+/* ============================================================ */
+/* WRITE REVIEW FORM                                            */
+/* ============================================================ */
+
+.write-review-box {
+    margin-bottom: 40px;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #eaeaea;
+}
+
+.write-review-box h4 {
+    margin-bottom: 15px;
+    color: #000;
+    font-weight: 600;
+}
+
+/* Rating Picker */
+.rating-picker {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+.rating-picker i {
+    font-size: 24px;
+    color: #ddd;
+    transition: color 0.2s, transform 0.2s;
+}
+.rating-picker i.active {
+    color: #ffc107;
+}
+.rating-picker i:hover {
+    transform: scale(1.2);
+}
+
+/* Textarea & Button */
+.review-input {
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    color: #333;
+    font-size: 15px;
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.review-input:focus {
+    outline: none;
+    border-color: #ff4081; /* Focus màu hồng MoMo */
+    box-shadow: 0 0 0 2px rgba(255,64,129,0.1);
+}
+
+/* Tag Selector */
+.review-tags-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.tag-btn {
+    background: #eef2f7;
+    border: 1px solid transparent;
+    color: #4a5568;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tag-btn.selected {
+    background: #ffe0eb; /* Nền hồng nhẹ MoMo */
+    border-color: #ff4081;
+    color: #ff4081;
+}
+
+.submit-review-btn {
+    background: #ff4081; /* Tick/Button MoMo Pink */
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    float: right;
+    transition: 0.3s;
+}
+
+.submit-review-btn:hover {
+    background: #e91e63;
+}
+
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+/* ============================================================ */
+/* REVIEW LIST ITEMS                                            */
+/* ============================================================ */
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.review-item {
+    border-bottom: 1px solid #eaeaea;
+    padding-bottom: 25px;
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.reviewer-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #eee;
+}
+
+.reviewer-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.reviewer-name {
+    font-weight: 500;
+    font-size: 16px;
+    color: #000;
+}
+
+.reviewer-meta {
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.verified-badge {
+    color: #ff4081; /* Chữ hồng đậm */
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.review-stars {
+    color: #ffc107;
+    margin-bottom: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    color: #000;
+}
+.review-stars i {
+    color: #ffc107;
+}
+
+.review-content {
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.review-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.review-tag {
+    background: #f0f4f8; /* Nền xanh nhạt/xám nhạt MoMo */
+    color: #333; 
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+}

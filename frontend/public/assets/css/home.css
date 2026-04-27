@@ -1,0 +1,636 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: url("../images/cinema-seat.png") no-repeat center bottom !important;
+  background-size: cover !important;
+  background-attachment: fixed !important;
+}
+
+/* ================= DÙNG CHUNG ================= */
+.container {
+  width: 1200px;
+  max-width: 95%;
+  margin: auto;
+}
+
+/* ================= MOVIE ADS BAR ================= */
+.movie-ads {
+  width: 100%;
+  background: #0b0f19;
+  border-bottom: 1px solid #1f2937;
+  overflow: hidden;
+  position: relative;
+}
+
+.ads-track {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  white-space: nowrap;
+  padding: 12px 0;
+  animation: adsScroll 35s linear infinite;
+}
+
+.ads-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.ads-item:hover { transform: scale(1.05); }
+
+.ads-item img {
+  width: 35px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.ads-tag {
+  background: #22c55e;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+@keyframes adsScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.movie-ads::before,
+.movie-ads::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 120px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+.movie-ads::before { left: 0;  background: linear-gradient(to right, #0b0f19, transparent); }
+.movie-ads::after  { right: 0; background: linear-gradient(to left,  #0b0f19, transparent); }
+
+/* ================= TRAILER – CINEMA AURORA ================= */
+
+/* Keyframe: nền aurora chuyển động */
+@keyframes auroraShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Keyframe: tia sáng quét ngang */
+@keyframes lightSweep {
+  0%   { transform: translateX(-100%) rotate(25deg); opacity: 0; }
+  30%  { opacity: 0.18; }
+  70%  { opacity: 0.18; }
+  100% { transform: translateX(200%) rotate(25deg); opacity: 0; }
+}
+
+/* Keyframe: nhấp nháy lỗ phim */
+@keyframes perfPulse {
+  0%, 100% { opacity: 0.55; }
+  50%       { opacity: 0.9; }
+}
+
+/* Brick pattern background */
+/* Premium CGV-style Brick Background */
+.trailer-cinema {
+  position: relative;
+  padding: 50px 0 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  overflow: hidden;
+  background: #0b0f19 url("../images/brick_cgv.png") repeat center;
+  background-size: 500px auto; /* Adjust size for realistic brick look */
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+}
+
+/* Tia sáng quét ngang */
+.trailer-cinema::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -40%;
+  width: 60%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(229, 9, 20, 0.07) 40%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(229, 9, 20, 0.07) 60%,
+    transparent 100%
+  );
+  animation: lightSweep 7s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Film strip – lỗ đục cuộn phim HAI BÊN */
+.trailer-cinema .film-strip-left,
+.trailer-cinema .film-strip-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+
+.trailer-cinema .film-strip-left  { left: 0; border-right: 1px solid rgba(255,255,255,0.06); }
+.trailer-cinema .film-strip-right { right: 0; border-left: 1px solid rgba(255,255,255,0.06); }
+
+.film-perf {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  animation: perfPulse 2.5s ease-in-out infinite;
+}
+
+/* Nội dung trailer nổi lên trên hết */
+.trailer-wrapper,
+.trailer-dots {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* wrapper nút + màn hình */
+.trailer-wrapper {
+  width: 90%;
+  max-width: 1000px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.trailer-screen {
+  flex: 1;
+  aspect-ratio: 16/9;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 0 60px rgba(255,255,255,0.1),
+    inset 0 0 80px rgba(0,0,0,0.5);
+}
+
+.trailer-screen iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.trailer-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+  pointer-events: none;
+}
+
+/* nút ◀ ▶ */
+.trailer-nav {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(229,9,20,0.6);
+  background: rgba(229,9,20,0.15);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
+}
+
+.trailer-nav:hover {
+  background: #e50914;
+  border-color: #e50914;
+  transform: scale(1.12);
+  box-shadow: 0 0 18px rgba(229,9,20,0.6);
+}
+
+/* thumbnail row */
+.trailer-list {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 12px 8px;
+  width: 90%;
+  max-width: 1000px;
+  scrollbar-width: thin;
+  scrollbar-color: #e50914 #1a1a1a;
+}
+
+.trailer-item {
+  flex-shrink: 0;
+  width: 150px;
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  opacity: 0.5;
+  transition: all 0.25s;
+  background: #111;
+}
+
+.trailer-item:hover { opacity: 0.82; }
+
+.trailer-item.active {
+  border-color: #e50914;
+  opacity: 1;
+  box-shadow: 0 0 14px rgba(229,9,20,0.65);
+}
+
+/* thumb + play icon */
+.trailer-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #222;
+  overflow: hidden;
+}
+
+.trailer-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+
+.trailer-item:hover .trailer-thumb img { transform: scale(1.06); }
+
+.trailer-play-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  pointer-events: none;
+}
+
+.trailer-title {
+  margin: 0;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #ccc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: #111;
+}
+
+.trailer-dots {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.trailer-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  cursor: pointer;
+  transition: all 0.25s;
+  border: 2px solid transparent;
+}
+
+.trailer-dot:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+.trailer-dot.active {
+  background: #e50914;
+  border-color: rgba(229,9,20,0.4);
+  box-shadow: 0 0 10px rgba(229,9,20,0.7);
+  transform: scale(1.25);
+}
+
+/* ================= MAIN CONTENT ================= */
+.home-content {
+  display: grid;
+  grid-template-columns: 3fr 1.2fr;
+  gap: 16px;
+  margin-top: 16px;
+  align-items: start;
+}
+
+/* ================= BẢNG XẾP HẠNG ================= */
+.ranking {
+  grid-column: 2 / 3;
+  grid-row: 1 / span 2;
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  padding: 6px 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.ranking h3 {
+  margin-bottom: 14px;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 14px;
+  padding: 10px 10px 10px 8px;
+  margin-bottom: 10px;
+  color: #fdfdfd;
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  overflow: hidden;
+}
+
+.ranking-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0,0,0,.54);
+  border-color: rgba(255,255,255,.32);
+}
+
+.rank-number {
+  min-width: 30px;
+  min-height: 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+
+.rank-1 { background: #f39c12; }
+.rank-2 { background: #bdc3c7; color: #1a1a1a; }
+.rank-3 { background: #884ea0; }
+.rank-4 { background: rgba(255,255,255,.18); }
+.rank-5 { background: rgba(255,255,255,.12); }
+
+.rank-poster {
+  width: 52px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: inset 0 0 10px rgba(0,0,0,.45);
+}
+
+.rank-info h4 {
+  margin: 0;
+  font-size: 1rem;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.rank-info p {
+  margin: 3px 0 0;
+  font-size: 0.84rem;
+  color: #ffd700;
+  opacity: 0.95;
+}
+
+.see-more {
+  display: block;
+  width: fit-content;
+  margin: 28px auto 0;
+  padding: 14px 48px;
+
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+
+  color: #ffffff;                 /* chữ trắng */
+  background: rgba(0,0,0,0.35);   /* nền tối nhẹ để nổi trên ghế đỏ */
+  border: 2px solid #ffffff;      /* viền trắng */
+
+  border-radius: 10px;
+  text-decoration: none;
+
+  backdrop-filter: blur(2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  transition: all 0.35s ease;
+}
+
+/* hover đỏ điện ảnh */
+.see-more:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #d32f2f, #8e0000);
+  border-color: #d32f2f;
+
+  transform: translateY(-3px);
+  box-shadow:
+    0 14px 35px rgba(211, 47, 47, 0.65),
+    0 0 22px rgba(255, 80, 80, 0.45);
+}
+
+/* click */
+.see-more:active {
+  transform: scale(0.96);
+}
+/* ================= EVENT ================= */
+.event-section {
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+
+.event-section h3 {
+  margin-bottom: 15px;
+}
+
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.event-card {
+  height: 150px;
+  background: #e5e5e5;
+}
+
+/* ===================================================
+   SECTION HEADING – Cinema Clean Style
+   =================================================== */
+
+h3 {
+  margin: 0;
+}
+
+.section-heading h3 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 30px; /* Resize slightly for Montserrat's natural width */
+  font-weight: 700; /* Bold/Extrabold */
+  letter-spacing: 4px; /* Montserrat needs less letter spacing than Bebas Neue */
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 0 20px;
+  color: #ffffff;
+  /* Đổ bóng chữ: bóng viền đen + lấp lánh nhẹ chuẩn style điện ảnh premium */
+  text-shadow: 0 3px 6px rgba(0,0,0,0.9), 0 0 15px rgba(229, 9, 20, 0.4);
+}
+
+h3::before, h3::after { display: none; }
+
+/* Row: line ── ◆ TIÊU ĐỀ ◆ ── line */
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 20px;
+  margin-top: 8px;
+}
+
+/* Đường kẻ gradient mờ dần */
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.5) 50%,
+    rgba(229,9,20,0.6) 100%
+  );
+}
+.section-heading .section-line:last-child {
+  background: linear-gradient(
+    to left,
+    transparent 0%,
+    rgba(255,255,255,0.5) 50%,
+    rgba(229,9,20,0.6) 100%
+  );
+}
+
+/* Kim cương đỏ trước và sau chữ */
+.section-heading h3::before,
+.section-heading h3::after {
+  display: inline;
+  content: " ◆ ";
+  color: #e50914;
+  font-size: 18px; /* Tỉ lệ to theo chữ */
+  vertical-align: middle;
+  letter-spacing: 0;
+}
+
+/* Compact cho ranking */
+.ranking-heading h3 {
+  font-size: 18px;
+  letter-spacing: 3px;
+  padding: 0 10px;
+}
+
+/* Ranking – JS controlled */
+
+.ranking-see-more {
+  font-size: 13px;
+  padding: 10px 24px;
+  margin-top: 14px;
+}
+
+
+/* ================= EVENT (FINAL) ================= */
+.event-section {
+  margin: 24px auto 30px;
+}
+
+.event-section h3 {
+  margin-bottom: 20px;
+}
+
+/* GRID */
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+}
+
+/* CARD */
+.event-card {
+  position: relative;
+  height: 240px;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* ẢNH */
+.event-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* QUAN TRỌNG: bỏ contain */
+  transition: transform 0.5s ease;
+}
+
+/* OVERLAY */
+.event-card::after {
+  content: "XEM NGAY";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 12px;
+
+  text-align: center;
+  font-weight: bold;
+  color: #fff;
+
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+
+  opacity: 0;
+  transition: 0.3s;
+}
+
+/* HOVER */
+.event-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 45px rgba(0,0,0,0.7);
+}
+
+.event-card:hover img {
+  transform: scale(1.1);
+}
+
+.event-card:hover::after {
+  opacity: 1;
+}

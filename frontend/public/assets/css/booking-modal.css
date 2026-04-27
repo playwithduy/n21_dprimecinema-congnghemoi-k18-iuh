@@ -1,0 +1,68 @@
+.city-name {
+  color: #e71a0f;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 20px 0 10px;
+}
+
+.cinema-name {
+  font-weight: bold;
+  font-size: 15px;
+  margin: 12px 0 5px;
+}
+
+.format-title {
+  font-size: 13px;
+  color: #ccc;
+  margin: 6px 0;
+}
+
+.time-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.time-btn {
+  background: #111;
+  border: 1px solid #555;
+  color: #fff;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.time-btn:hover {
+  background: #e71a0f;
+  border-color: #e71a0f;
+}
+
+.format-block {
+  margin-bottom: 8px;
+}
+
+.cinema-block {
+  margin-left: 10px;
+  margin-bottom: 12px;
+}
+
+.date-list {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.date-btn {
+  padding: 6px 12px;
+  background: #111;
+  border: 1px solid #555;
+  color: #fff;
+  cursor: pointer;
+}
+
+.date-btn.active {
+  background: #e71a0f;
+  border-color: #e71a0f;
+}

@@ -1,0 +1,506 @@
+.dark-cinema-bg {
+    background-color: #f4f6f8;
+    padding: 0 0 40px 0;
+    min-height: auto !important;
+}
+
+/* KHỐI HERO (Dark Theme, giống Momo top banner) */
+.cinema-hero {
+    background: #1a1c22;
+    padding: 40px 0;
+    color: #fff;
+    border-bottom: 1px solid #333;
+}
+
+.cinema-hero-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 50px;
+    align-items: flex-start;
+    padding: 0 20px;
+}
+
+/* POSTER */
+.cinema-hero-poster {
+    flex-shrink: 0;
+    width: 220px;
+}
+
+.cinema-hero-poster img {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.05);
+}
+
+/* INFO */
+.cinema-hero-info {
+    flex: 1;
+}
+
+.movie-title-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 5px;
+}
+
+.movie-title-row h1 {
+    font-size: 26px;
+    margin: 0;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #fff;
+}
+
+.age-badge {
+    background: #e50914;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    line-height: 1;
+}
+
+.cinema-hero-meta {
+    font-size: 14px;
+    color: #aeb4c6;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dot-separator {
+    color: #555;
+    font-size: 12px;
+}
+
+.cinema-hero-rating {
+    margin-bottom: 20px;
+}
+
+.star-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.star-group i {
+    color: #f6c200;
+    font-size: 24px;
+}
+
+.rating-score {
+    font-size: 22px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.rating-sub {
+    font-size: 14px;
+    color: #7b8099;
+}
+
+.cinema-slogan {
+    font-style: italic;
+    color: #ccc;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.cinema-hero-desc h4 {
+    font-size: 16px;
+    margin-bottom: 6px;
+    color: #fff;
+}
+
+.cinema-hero-desc p {
+    color: #c8cdd8;
+    line-height: 1.5;
+    font-size: 14px;
+    margin: 0;
+}
+
+.cinema-hero-desc p.short {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.toggle-more {
+    color: #e50914;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.toggle-more:hover {
+    text-decoration: underline;
+}
+
+/* Lưới chi tiết Dạng Compact kiểu Momo */
+.cinema-hero-compact-info {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 25px;
+    row-gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.info-item {
+    font-size: 14px;
+    color: #fff;
+}
+
+.info-item span {
+    color: #7b8099;
+}
+
+.info-item b {
+    font-weight: 500;
+}
+
+/* ACTIONS */
+.cinema-hero-actions {
+    display: flex;
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+}
+
+.action-btn i {
+    font-size: 20px;
+    color: #e50914;
+}
+
+.action-btn:hover {
+    color: #e50914;
+}
+
+/* ======================================================== */
+/* KHỐI BOTTOM: LỊCH CHIẾU VÀ ĐANG CHIẾU */
+/* ======================================================== */
+.cinema-bottom.container {
+    max-width: 1100px;
+    margin: 40px auto;
+    display: flex;
+    gap: 40px;
+    padding: 0 20px;
+    align-items: flex-start;
+}
+
+.sect-title {
+    font-size: 24px;
+    color: #1a1c22;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* CỘT TRÁI - 70% */
+.cinema-showtimes-col {
+    flex: 7;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.section-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.section-title-row h2 {
+    margin: 0;
+}
+
+.filter-group {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-group select, .filter-group button {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.filter-group button i { display: inline-block; }
+
+/* CSS Tùy biến đè Modal cho Lịch Chiếu INLINE */
+.inline-showtimes-wrapper .date-list-scrollable {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.inline-showtimes-wrapper .date-btn {
+    flex-shrink: 0;
+    min-width: 100px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    color: #444;
+    padding: 10px 0;
+    cursor: pointer;
+    font-weight: 500;
+    text-align: center;
+    transition: 0.2s;
+}
+
+.inline-showtimes-wrapper .date-btn.active {
+    border-color: #e50914;
+    color: #e50914;
+    background: rgba(229,9,20,0.05);
+    font-weight: bold;
+}
+
+/* Rạp list inside inline */
+.city-name {
+    display: none; /* Thường Momo bỏ group City khi đang dùng filter Combo, nhưng cứ tạm ẩn hoặc hiện tùy logic API */
+}
+
+/* THÊM LOGO D PRIME VÀO TEN RẠP */
+.cinema-name-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px dashed #eee;
+    margin-bottom: 15px;
+}
+
+.dp-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #e50914;
+    font-size: 18px;
+}
+
+.dp-info h5 {
+    font-size: 18px;
+    margin: 0 0 5px 0;
+    color: #333;
+}
+.dp-info p {
+    font-size: 13px;
+    color: #777;
+    margin: 0;
+}
+
+.format-block {
+    margin-bottom: 20px;
+}
+
+.format-block b {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #555;
+}
+
+.time-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.time-btn {
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    transition: 0.2s;
+}
+
+.time-btn:not(.disabled):hover {
+    background: #e50914;
+    color: #fff;
+    border-color: #e50914;
+}
+
+.time-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #eee;
+    color: #999;
+}
+
+
+/* CỘT PHẢI - 30% (Phim Đang Chiếu Sidebar) */
+.cinema-sidebar-col {
+    flex: 3;
+}
+
+.sidebar-movie-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.sidebar-movie-card {
+    display: flex;
+    gap: 15px;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+.sidebar-movie-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.sidebar-poster {
+    width: 80px;
+    height: 120px;
+    object-fit: cover;
+}
+
+.sidebar-info {
+    padding: 10px 10px 10px 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start; /* FIX CHỐNG DÃN RỘNG TAG */
+}
+
+.sidebar-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+    line-height: 1.3;
+}
+
+.sidebar-tag {
+    font-size: 11px;
+    background: #e50914;
+    color: #fff;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+.sidebar-rating {
+    font-size: 13px;
+    color: #f6c200;
+    font-weight: bold;
+}
+
+
+/* ===== MODAL TRAILER (mv- prefix) ===== */
+.mv-trailer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.85);
+    justify-content: center;
+    align-items: center;
+    animation: mvFadeIn 0.25s ease;
+  }
+  
+  .mv-trailer-overlay.active {
+    display: flex;
+  }
+  
+  @keyframes mvFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  .mv-trailer-box {
+    position: relative;
+    width: 82%;
+    max-width: 920px;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 14px;
+    overflow: visible;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8);
+    animation: mvSlideUp 0.3s ease;
+  }
+  
+  @keyframes mvSlideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  
+  .mv-trailer-box iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 14px;
+  }
+  
+  .mv-trailer-close {
+    position: absolute;
+    top: -44px;
+    right: 0;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  
+  .mv-trailer-close:hover {
+    background: #e50914;
+    border-color: #e50914;
+  }
