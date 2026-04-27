@@ -39,6 +39,8 @@ Real-time
 - Diễn đàn & cộng đồng
 - Blog & tin tức
 - Chatbot AI
+- Vé điện tử
+- Bình luận phim
 
 Bảng điều khiển Quản trị (Admin Dashboard)
 - Bảng điều khiển thống kê
