@@ -22,7 +22,8 @@
 
 <!-- BOOKING MODAL -->
 <script>
-const API_MOVIES = "http://127.0.0.1:3000/api/movies";
+const API_BASE = window.location.origin + "/api";
+const API_MOVIES = `${API_BASE}/movies`;
 
 let nowData = [], soonData = [];
 let nowLimitPage = 12, soonLimitPage = 12;

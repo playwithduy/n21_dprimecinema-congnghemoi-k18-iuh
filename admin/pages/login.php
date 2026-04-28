@@ -65,7 +65,7 @@
 
 <div class="login-box">
     <div class="logo-area">
-        <img src="../frontend/public/assets/images/logo.png" alt="D Prime">
+        <img src="assets/images/logo.png" alt="D Prime">
         <h2>D PRIME <span>SYSTEM</span></h2>
         <p>Restricted Operations Portal</p>
     </div>

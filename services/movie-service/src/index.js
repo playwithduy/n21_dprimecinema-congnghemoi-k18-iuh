@@ -7,7 +7,21 @@ const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 
+const db = require("./config/db");
 const app = express();
+
+// Migration: Thêm cột seat_styles vào bảng rooms nếu chưa có
+(async () => {
+    try {
+        const [columns] = await db.query("SHOW COLUMNS FROM rooms LIKE 'seat_styles'");
+        if (columns.length === 0) {
+            await db.query("ALTER TABLE rooms ADD COLUMN seat_styles JSON DEFAULT NULL");
+            console.log("✅ Added seat_styles column to rooms table");
+        }
+    } catch (err) {
+        console.error("Migration error:", err.message);
+    }
+})();
 
 app.use(cors());
 app.use(express.json());

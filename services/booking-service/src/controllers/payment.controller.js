@@ -49,7 +49,7 @@ async function generateTickets(booking_id, conn) {
 /* ─── Lấy thông tin showtime (gọi movie-service) ────────────── */
 async function getShowtimeInfo(showtime_id) {
     try {
-        const url = `http://movie-service:3002/${showtime_id}`;
+        const url = `http://movie-service:3002/showtimes/${showtime_id}`;
         console.log("🔗 CALLING MOVIE-SERVICE:", url);
         const response = await axios.get(url, { timeout: 3000 });
         const data = response.data;
@@ -113,6 +113,26 @@ async function createPayment(req, res) {
     try {
         await conn.beginTransaction();
 
+        // 1. Check membership discount if no coupon
+        let membership_discount = 0;
+        const [[user]] = await conn.query("SELECT membership_rank FROM auth_db.users WHERE id = ?", [user_id]);
+        if (!coupon_code && user) {
+            const rank = user.membership_rank;
+            let discountPercent = 0;
+            if (rank === 'Bạc') discountPercent = 0.1;
+            else if (rank === 'Vàng') discountPercent = 0.2;
+            else if (rank === 'Kim cương') discountPercent = 0.3;
+            else if (rank === 'Ruby') discountPercent = 0.5;
+            // Rank 'Đồng' is 0% discount by default (discountPercent = 0)
+
+            if (discountPercent > 0) {
+                membership_discount = Math.floor((seat_total + (combo_total || 0)) * discountPercent);
+            }
+        }
+
+        const actual_discount = coupon_code ? (discount_amount || 0) : membership_discount;
+        const final_amount = (seat_total + (combo_total || 0)) - actual_discount;
+
         // 1. Check coupon if provided
         if (coupon_code) {
             const [ucRows] = await conn.query(
@@ -174,7 +194,7 @@ async function createPayment(req, res) {
         const [bookingResult] = await conn.query(`
             INSERT INTO bookings (booking_code, user_id, user_email, showtime_id, seat_total, combo_total, final_total, payment_method, payment_status, coupon_code, discount_amount, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-        `, [booking_code, user_id, user_email || null, showtime_id, seat_total, combo_total || 0, final_total, payment_method, payment_status, coupon_code || null, discount_amount || 0]);
+        `, [booking_code, user_id, user_email || null, showtime_id, seat_total, combo_total || 0, final_amount, payment_method, payment_status, coupon_code || null, actual_discount]);
 
         const booking_id = bookingResult.insertId;
 
@@ -251,6 +271,129 @@ async function getPaymentStatus(req, res) {
     }
 }
 
+/* ─── Inventory Deduction Logic ─────────────────────────────── */
+async function deductInventory(booking_id, conn) {
+    try {
+        console.log(`📦 Attempting to deduct inventory for booking ${booking_id}`);
+        
+        // 1. Lấy cinema_id từ booking (thông qua showtimes -> rooms)
+        const [[bookingInfo]] = await conn.query(`
+            SELECT b.id, r.cinema_id
+            FROM bookings b
+            JOIN movie_db.showtimes st ON b.showtime_id = st.id
+            JOIN movie_db.rooms r ON st.room_id = r.id
+            WHERE b.id = ?
+        `, [booking_id]);
+
+        if (!bookingInfo) return;
+        const cinema_id = bookingInfo.cinema_id;
+
+        // 2. Lấy danh sách combo trong đơn hàng
+        const [bookingCombos] = await conn.query(
+            "SELECT combo_name, qty FROM booking_combos WHERE booking_id = ?",
+            [booking_id]
+        );
+
+        if (!bookingCombos.length) return;
+
+        for (const bc of bookingCombos) {
+            const [[combo]] = await conn.query("SELECT id FROM combos WHERE name = ?", [bc.combo_name]);
+            if (!combo) continue;
+
+            // 3. Lấy công thức (ingredients) cho combo này
+            // Lấy item_name để map sang inventory_items của rạp cụ thể
+            const [ingredients] = await conn.query(`
+                SELECT ci.required_qty, ii_template.item_name
+                FROM combo_ingredients ci
+                JOIN inventory_items ii_template ON ci.item_id = ii_template.id
+                WHERE ci.combo_id = ?
+            `, [combo.id]);
+
+            for (const ing of ingredients) {
+                const totalDeduct = bc.qty * ing.required_qty;
+
+                // 4. Tìm item tương ứng tại rạp này
+                const [[targetItem]] = await conn.query(
+                    "SELECT id FROM inventory_items WHERE cinema_id = ? AND item_name = ?",
+                    [cinema_id, ing.item_name]
+                );
+
+                if (targetItem) {
+                    // 5. Trừ kho rạp cụ thể
+                    await conn.query(
+                        "UPDATE inventory_items SET current_stock = current_stock - ? WHERE id = ?",
+                        [totalDeduct, targetItem.id]
+                    );
+
+                    // 6. Ghi log xuất kho
+                    await conn.query(
+                        "INSERT INTO inventory_logs (item_id, cinema_id, created_by, change_qty, type, note) VALUES (?, ?, 'Hệ thống (Bán hàng)', ?, 'export', ?)",
+                        [targetItem.id, cinema_id, -totalDeduct, `Xuất kho rạp #${cinema_id} cho đơn ${booking_id} (Combo: ${bc.combo_name})`]
+                    );
+                }
+            }
+        }
+        console.log(`✅ Inventory deducted for booking ${booking_id} at cinema ${cinema_id}`);
+    } catch (err) {
+        console.error("❌ deductInventory ERROR:", err.message);
+    }
+}
+
+/* ─── Membership Logic ───────────────────────────────────────── */
+async function updateMembership(user_id, amount, conn) {
+    try {
+        console.log(`💎 Updating membership for user ${user_id} | amount: ${amount}`);
+        
+        // 1. Lấy thông tin hiện tại
+        const [[user]] = await conn.query(
+            "SELECT total_spending, membership_rank, first_transaction_date, last_transaction_date FROM auth_db.users WHERE id = ?",
+            [user_id]
+        );
+        if (!user) return;
+
+        let newSpending = parseFloat(user.total_spending || 0) + parseFloat(amount);
+        let now = new Date();
+        let firstDate = user.first_transaction_date || now;
+        
+        // 2. Kiểm tra reset (nếu 6 tháng không giao dịch)
+        let isReset = false;
+        if (user.last_transaction_date) {
+            let lastDate = new Date(user.last_transaction_date);
+            let diffMonths = (now.getFullYear() - lastDate.getFullYear()) * 12 + (now.getMonth() - lastDate.getMonth());
+            if (diffMonths >= 6) {
+                isReset = true;
+                newSpending = parseFloat(amount); // Reset chi tiêu từ đầu (đơn mới)
+                firstDate = now;
+            }
+        }
+
+        // 3. Tính hạng mới & Điểm thưởng mới
+        let newRank = 'Đồng';
+        if (newSpending >= 20000000) newRank = 'Ruby';
+        else if (newSpending >= 10000000) newRank = 'Kim cương';
+        else if (newSpending >= 2000000) newRank = 'Vàng';
+        else if (newSpending >= 500000) newRank = 'Bạc';
+        else newRank = 'Đồng';
+
+        const earnedPoints = Math.floor(amount / 100000);
+
+        // 4. Cập nhật DB
+        await conn.query(`
+            UPDATE auth_db.users 
+            SET total_spending = ?, 
+                membership_rank = ?, 
+                reward_points = reward_points + ?,
+                first_transaction_date = ?, 
+                last_transaction_date = NOW() 
+            WHERE id = ?
+        `, [newSpending, newRank, earnedPoints, firstDate, user_id]);
+
+        console.log(`✅ Membership updated: ${user.membership_rank} -> ${newRank} | Total: ${newSpending}`);
+    } catch (err) {
+        console.error("❌ updateMembership ERROR:", err.message);
+    }
+}
+
 /* ─── POST /api/payment/confirm-cash ────────────────────────── */
 async function confirmCashPayment(req, res) {
     const { booking_code, secret } = req.body;
@@ -263,7 +406,7 @@ async function confirmCashPayment(req, res) {
         await conn.beginTransaction();
 
         const [[booking]] = await conn.query(`
-            SELECT id, showtime_id, user_email, seat_total, combo_total, final_total, payment_method, payment_status
+            SELECT id, user_id, showtime_id, user_email, seat_total, combo_total, final_total, payment_method, payment_status
             FROM bookings WHERE booking_code=? AND payment_method='cash'
         `, [booking_code]);
 
@@ -280,8 +423,14 @@ async function confirmCashPayment(req, res) {
             [booking_code]
         );
 
+        // Deduct Inventory
+        await deductInventory(booking.id, conn);
+
         // Generate tickets
         await generateTickets(booking.id, conn);
+
+        // 💎 Update Membership
+        await updateMembership(booking.user_id, booking.final_total, conn);
 
         const [seatRows] = await conn.query(
             `SELECT seat_code FROM booking_seats WHERE booking_id=?`,
@@ -334,7 +483,7 @@ async function simulateBankReceived(req, res) {
         await conn.beginTransaction();
 
         const [[booking]] = await conn.query(`
-            SELECT id, showtime_id, user_email, seat_total, combo_total, final_total, payment_method
+            SELECT id, user_id, showtime_id, user_email, seat_total, combo_total, final_total, payment_method
             FROM bookings WHERE booking_code=? AND payment_status IN ('pending','pending_cash')
         `, [booking_code]);
 
@@ -348,8 +497,14 @@ async function simulateBankReceived(req, res) {
             [booking_code]
         );
 
+        // Deduct Inventory
+        await deductInventory(booking.id, conn);
+
         // Generate tickets
         await generateTickets(booking.id, conn);
+
+        // 💎 Update Membership
+        await updateMembership(booking.user_id, booking.final_total, conn);
 
         const [seatRows] = await conn.query(
             `SELECT seat_code FROM booking_seats WHERE booking_id=?`,
@@ -399,7 +554,7 @@ async function confirmBankPayment(req, res) {
         await conn.beginTransaction();
 
         const [[booking]] = await conn.query(
-            `SELECT id, showtime_id, user_email, seat_total, combo_total, final_total, payment_method, payment_status FROM bookings WHERE booking_code=?`,
+            `SELECT id, user_id, showtime_id, user_email, seat_total, combo_total, final_total, payment_method, payment_status FROM bookings WHERE booking_code=?`,
             [booking_code]
         );
         if (!booking) throw new Error("Không tìm thấy");
@@ -413,8 +568,14 @@ async function confirmBankPayment(req, res) {
             [booking_code]
         );
 
+        // Deduct Inventory
+        await deductInventory(booking.id, conn);
+
         // Generate tickets
         await generateTickets(booking.id, conn);
+
+        // 💎 Update Membership
+        await updateMembership(booking.user_id, booking.final_total, conn);
 
         const [seatRows] = await conn.query(
             `SELECT seat_code FROM booking_seats WHERE booking_id=?`,
@@ -453,6 +614,111 @@ async function confirmBankPayment(req, res) {
     }
 }
 
+/* ─── POST /api/payment/sepay-webhook ───────────────────────── */
+async function sepayWebhook(req, res) {
+    const data = req.body;
+    console.log("🔔 SEPAY WEBHOOK RECEIVED:", data);
+
+    const content = data.content || "";
+    const amount = parseFloat(data.transferAmount || data.transfer_amount || 0);
+
+    // Trích xuất mã vé: Tìm chuỗi bắt đầu bằng DP và theo sau là các chữ cái/số (dừng lại khi gặp dấu - hoặc khoảng trắng)
+    const match = content.match(/DP[A-Z0-9]+/i);
+    if (!match) {
+        console.warn("⚠️ Webhook SePay không tìm thấy mã vé hợp lệ trong nội dung:", content);
+        return res.json({ success: false, message: "Mã vé không hợp lệ" });
+    }
+
+    let booking_code = match[0].toUpperCase();
+    
+    // Đảm bảo không dính ký tự lạ ở cuối
+    booking_code = booking_code.trim();
+    const conn = await db.getConnection();
+    
+    try {
+        await conn.beginTransaction();
+
+        // LOGGING TO FILE FOR DEBUGGING
+        const fs = require('fs');
+        const path = require('path');
+        const logFile = path.join(process.cwd(), 'sepay_logs.txt');
+        const logMsg = `\n[${new Date().toISOString()}] REC: ${booking_code} | AMT: ${amount}\nDATA: ${JSON.stringify(data)}\n`;
+        fs.appendFileSync(logFile, logMsg);
+
+        const [[booking]] = await conn.query(
+            `SELECT id, user_id, showtime_id, user_email, seat_total, combo_total, final_total, payment_method, payment_status FROM bookings WHERE booking_code=?`,
+            [booking_code]
+        );
+
+        if (!booking) {
+            fs.appendFileSync(logFile, `❌ ERROR: Không tìm thấy mã vé ${booking_code}\n`);
+            throw new Error("Không tìm thấy mã vé: " + booking_code);
+        }
+
+        if (booking.payment_status === "paid") {
+            fs.appendFileSync(logFile, `ℹ️ INFO: Vé ${booking_code} đã thanh toán trước đó.\n`);
+            await conn.rollback();
+            return res.json({ success: true, message: "Vé đã được thanh toán trước đó" });
+        }
+
+        // So sánh số tiền (cho phép sai số 1000đ để tránh các vấn đề về làm tròn)
+        const diff = Math.abs(parseFloat(booking.final_total) - amount);
+        if (diff > 1000) {
+            fs.appendFileSync(logFile, `❌ ERROR: Sai số tiền. Vé: ${booking.final_total} | Nhận: ${amount} | Lệch: ${diff}\n`);
+            console.error(`❌ Sai số tiền: Vé ${booking.final_total}đ | Chuyển ${amount}đ`);
+            await conn.rollback();
+            return res.status(400).json({ success: false, message: "Sai số tiền thanh toán" });
+        }
+
+        await conn.query(
+            `UPDATE bookings SET payment_status='paid', paid_at=NOW(), payment_note='SePay Auto Confirmed' WHERE booking_code=?`,
+            [booking_code]
+        );
+
+        await deductInventory(booking.id, conn);
+        await generateTickets(booking.id, conn);
+        await updateMembership(booking.user_id, booking.final_total, conn);
+
+        const [seatRows] = await conn.query(
+            `SELECT seat_code FROM booking_seats WHERE booking_id=?`,
+            [booking.id]
+        );
+        const seats = seatRows.map(r => r.seat_code);
+
+        await conn.query(`
+            UPDATE showtime_seats ss JOIN booking_seats bs ON ss.seat_id=bs.seat_id
+            SET ss.status='booked', ss.held_by=NULL, ss.hold_until=NULL
+            WHERE bs.booking_id=? AND ss.showtime_id=?
+        `, [booking.id, booking.showtime_id]);
+
+        await conn.commit();
+        
+        notifySocketService(booking_code, booking.showtime_id);
+
+        sendTicketAfterPayment({
+            booking_code,
+            booking_id:     booking.id,
+            user_email:     booking.user_email,
+            showtime_id:    booking.showtime_id,
+            seats,
+            seat_total:     booking.seat_total,
+            combo_total:    booking.combo_total,
+            final_total:    booking.final_total,
+            payment_method: booking.payment_method,
+        });
+
+        console.log(`✅ SEPAY CONFIRMED SUCCESS: ${booking_code}`);
+        return res.json({ success: true });
+
+    } catch (err) {
+        if (conn) await conn.rollback();
+        console.error("❌ sepayWebhook ERROR:", err.message);
+        return res.status(500).json({ success: false, error: err.message });
+    } finally {
+        if (conn) conn.release();
+    }
+}
+
 /* ─── Notify socket service ─────────────────────────────────── */
 function notifySocketService(booking_code, showtime_id) {
     try {
@@ -478,6 +744,7 @@ async function getMyTickets(req, res) {
         return res.status(400).json({ success: false, error: "Thiếu user_id" });
 
     try {
+        console.log(`🔍 Fetching tickets for user_id: ${user_id}`);
         const [bookings] = await db.query(`
             SELECT 
                 id, booking_code, showtime_id,
@@ -488,6 +755,8 @@ async function getMyTickets(req, res) {
             WHERE user_id = ?
             ORDER BY created_at DESC
         `, [user_id]);
+
+        console.log(`📊 Found ${bookings.length} bookings for user ${user_id}`);
 
         if (!bookings.length)
             return res.json({ success: true, tickets: [] });
@@ -505,6 +774,11 @@ async function getMyTickets(req, res) {
                 [b.id]
             );
 
+            const [ticketRows] = await db.query(
+                "SELECT id, qr_hash FROM tickets WHERE booking_id = ?",
+                [b.id]
+            );
+
             return {
                 ...b,
                 movie_name:  showtimeInfo.movie_name  || "---",
@@ -513,6 +787,7 @@ async function getMyTickets(req, res) {
                 show_time:   showtimeInfo.show_time   || "---",
                 seats:  seatRows.map(r => r.seat_code),
                 combos: comboRows || [],
+                ticket_details: ticketRows // Thêm danh sách ticket_id và qr_hash
             };
         }));
 
@@ -609,4 +884,5 @@ module.exports = {
     simulateBankReceived,
     getMyTickets,
     cancelPayment,
+    sepayWebhook,
 };

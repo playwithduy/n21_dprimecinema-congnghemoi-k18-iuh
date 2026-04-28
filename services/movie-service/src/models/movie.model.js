@@ -4,8 +4,19 @@ const db = require("../config/db");
 // ADMIN CRUD OPERATIONS
 // ==========================
 exports.getAllAdmin = async () => {
+  console.log("📊 Fetching admin movies with revenue calculation...");
   const [rows] = await db.query(`
-    SELECT * FROM movies ORDER BY id DESC
+    SELECT 
+      m.id, m.title, m.slug, m.poster, m.trailer_url, m.duration, 
+      m.release_date, m.end_date, m.age_limit, m.description, 
+      m.genres, m.status, m.rating,
+      (SELECT IFNULL(SUM(b.final_total), 0) 
+       FROM booking_db.bookings b 
+       JOIN movie_db.showtimes s ON b.showtime_id = s.id 
+       WHERE s.movie_id = m.id AND b.payment_status IN ('paid', 'pending_cash')
+      ) as revenue
+    FROM movies m 
+    ORDER BY m.id DESC
   `);
   return rows;
 };
@@ -23,7 +34,8 @@ exports.create = async (movie) => {
 };
 
 exports.update = async (id, movie) => {
-  const { title, slug, poster, trailer_url, duration, release_date, end_date, age_limit, description, genres, status } = movie;
+  const { title, slug, poster, trailer_url, duration, release_date, end_date, age_limit, description, genres } = movie;
+  const status = new Date(release_date) > new Date() ? 'COMING_SOON' : 'NOW_SHOWING';
   
   const [result] = await db.query(
     `UPDATE movies 
@@ -43,7 +55,7 @@ exports.getNowShowing = async () => {
   const [rows] = await db.query(`
     SELECT id, title, slug, poster, duration, age_limit, rating, trailer_url
     FROM movies
-    WHERE status = 'NOW_SHOWING'
+    WHERE status = 'NOW_SHOWING' AND (end_date IS NULL OR end_date > CURDATE())
   `);
   return rows;
 };

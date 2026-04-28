@@ -6,8 +6,9 @@
 // ====================================================
 // D PRIME ADMIN — API Helper
 // ====================================================
+const API_PORT = (window.location.port === '8080' || window.location.port === '3000') ? ':3000' : '';
 const API = {
-  BASE: window.location.protocol + "//" + window.location.hostname + ":3000/api",
+  BASE: window.location.protocol + "//" + window.location.hostname + API_PORT + "/api",
 
   getAssetUrl(path) {
     if (!path || path === 'null' || path === 'undefined') return "https://ui-avatars.com/api/?background=random&name=User";

@@ -15,6 +15,7 @@ exports.getAllAdmin = async (req, res) => {
         DATE_FORMAT(sd.show_date, '%Y-%m-%d') AS show_date,
         m.title AS movie_title, m.poster AS movie_poster,
         c.name AS cinema_name,
+        c.address AS cinema_address,
         r.room_name,
         f.name AS format_name,
         l.name AS language_name
@@ -55,6 +56,7 @@ exports.getTimetableAdmin = async (req, res) => {
         m.title as movie_title, m.poster as movie_poster,
         r.room_name,
         c.name as cinema_name,
+        c.address as cinema_address,
         (SELECT COUNT(*) FROM booking_db.seat_layout WHERE room_id = st.room_id) as total_seats,
         (SELECT COUNT(*) FROM booking_db.showtime_seats ss WHERE ss.showtime_id = st.id AND ss.status IN ('booked', 'held', 'locked', 'sold')) as booked_seats
       FROM showtimes st
@@ -120,19 +122,17 @@ exports.createShowtime = async (req, res) => {
       show_date_id = dateRows[0].id;
     }
 
-    // 2. Check overlap: cùng phòng, cùng ngày, giờ chiếu trùng (trong khoảng duration)
-    const [movies] = await db.query("SELECT duration FROM movies WHERE id = ?", [movie_id]);
-    const duration = movies[0]?.duration || 120;
+    // 2. Check overlap: cùng phòng, cùng ngày, khoảng cách ít nhất 3 tiếng (180 phút)
     const [overlap] = await db.query(`
       SELECT st.id FROM showtimes st
-      JOIN movies m ON st.movie_id = m.id
-      WHERE st.room_id = ? AND st.show_date_id = ?
-        AND ABS(TIMESTAMPDIFF(MINUTE, st.show_time, ?)) < (m.duration + 30)
-    `, [room_id, show_date_id, show_time]);
+      JOIN show_dates sd ON st.show_date_id = sd.id
+      WHERE st.room_id = CAST(? AS UNSIGNED) AND sd.show_date = ?
+        AND ABS(TIME_TO_SEC(st.show_time) - TIME_TO_SEC(?)) < 10800
+    `, [room_id, show_date, show_time]);
 
     if (overlap.length > 0) {
       return res.status(409).json({
-        message: `⚠️ Phòng chiếu đã có suất chiếu gần giờ này (cần cách ít nhất ${duration + 30} phút để dọn dẹp phòng).`
+        message: "LỖI: Khoảng cách giữa các suất chiếu trong cùng 1 phòng phải từ 3 tiếng trở lên!"
       });
     }
 
@@ -208,9 +208,10 @@ exports.getShowtimeDetailAdmin = async (req, res) => {
     
     // 1. Info cơ bản
     const [stRows] = await db.query(`
-      SELECT st.*, DATE_FORMAT(sd.show_date, '%Y-%m-%d') as show_date
-      FROM showtimes st
-      JOIN show_dates sd ON st.show_date_id = sd.id
+      SELECT st.*, DATE_FORMAT(sd.show_date, '%Y-%m-%d') as show_date, r.room_name
+      FROM movie_db.showtimes st
+      JOIN movie_db.show_dates sd ON st.show_date_id = sd.id
+      LEFT JOIN movie_db.rooms r ON st.room_id = r.id
       WHERE st.id = ?
     `, [id]);
     
@@ -251,6 +252,20 @@ exports.updateShowtime = async (req, res) => {
       show_date_id = ins.insertId;
     } else {
       show_date_id = dateRows[0].id;
+    }
+
+    // 2. Check overlap: cùng phòng, cùng ngày, khoảng cách ít nhất 3 tiếng (180 phút), trừ chính nó
+    const [overlap] = await db.query(`
+      SELECT st.id FROM showtimes st
+      JOIN show_dates sd ON st.show_date_id = sd.id
+      WHERE st.room_id = CAST(? AS UNSIGNED) AND sd.show_date = ? AND st.id != ?
+        AND ABS(TIME_TO_SEC(st.show_time) - TIME_TO_SEC(?)) < 10800
+    `, [room_id, show_date, id, show_time]);
+
+    if (overlap.length > 0) {
+      return res.status(409).json({
+        message: "LỖI: Khoảng cách giữa các suất chiếu trong cùng 1 phòng phải từ 3 tiếng trở lên!"
+      });
     }
 
     // 2. Chạy update showtime
@@ -482,6 +497,14 @@ exports.initRoomLayout = async (req, res) => {
     const { id } = req.params;
     const { rows, cols } = req.body;
 
+    // Validate: rows and cols must be positive integers
+    if (!rows || !cols || rows < 1 || cols < 1 || !Number.isInteger(rows) || !Number.isInteger(cols)) {
+      return res.status(400).json({ message: "Số hàng và số ghế mỗi hàng phải là số nguyên dương (≥ 1)" });
+    }
+    if (rows > 26) {
+      return res.status(400).json({ message: "Số hàng tối đa là 26 (A-Z)" });
+    }
+
     // Xoá sơ đồ cũ nếu có
     await db.query("DELETE FROM booking_db.seat_layout WHERE room_id = ?", [id]);
 
@@ -562,14 +585,18 @@ exports.getMovieTimes = async (req, res) => {
   try {
     const { id, movieId, date } = req.params;
     const [times] = await db.query(`
-      SELECT st.id, DATE_FORMAT(st.show_time, '%H:%i') as time
+      SELECT 
+        st.id, 
+        DATE_FORMAT(st.show_time, '%H:%i') as time, 
+        st.room_id as room_id,
+        st.room_id as roomId,
+        (SELECT room_name FROM movie_db.rooms WHERE id = st.room_id) as room_name
       FROM movie_db.showtimes st
-      JOIN movie_db.rooms r ON st.room_id = r.id
       JOIN movie_db.show_dates sd ON st.show_date_id = sd.id
-      WHERE r.cinema_id = ? AND st.movie_id = ? 
-      AND sd.show_date = ?
+      WHERE st.movie_id = ? 
+        AND sd.show_date = ?
       ORDER BY time ASC
-    `, [id, movieId, date]);
+    `, [movieId, date]);
     res.json(times);
   } catch (err) {
     console.error("getMovieTimes error:", err);
@@ -607,3 +634,53 @@ exports.getShowtimeConfig = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+// PATCH /api/showtimes/admin/rooms/:id/styles
+exports.updateRoomStyles = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { colors, images } = req.body;
+    const styles = JSON.stringify({ colors, images });
+    await db.query("UPDATE movie_db.rooms SET seat_styles = ? WHERE id = ?", [styles, id]);
+    res.json({ message: "Cập nhật giao diện mặc định cho phòng thành công" });
+  } catch (err) {
+    console.error("updateRoomStyles error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// PATCH /api/showtimes/admin/movies/:id/styles
+exports.updateMovieStyles = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { colors, images } = req.body;
+    const styles = JSON.stringify({ colors, images });
+    
+    // Attempt to update. If column missing, we might need to alert the user or auto-add it.
+    await db.query("UPDATE movie_db.movies SET seat_styles = ? WHERE id = ?", [styles, id]);
+    res.json({ message: "Cập nhật giao diện cho phim thành công" });
+  } catch (err) {
+    console.error("updateMovieStyles error:", err);
+    if (err.code === 'ER_BAD_FIELD_ERROR') {
+        return res.status(400).json({ message: "Database missing seat_styles column in movies table. Please add it." });
+    }
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// GET /api/showtimes/admin/movies/:id/config
+exports.getMovieConfig = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await db.query("SELECT seat_styles FROM movie_db.movies WHERE id = ?", [id]);
+    if (!result.length) return res.status(404).json({ message: "Không tìm thấy phim" });
+    
+    let styles = null;
+    if (result[0].seat_styles) {
+        styles = typeof result[0].seat_styles === 'string' ? JSON.parse(result[0].seat_styles) : result[0].seat_styles;
+    }
+    res.json({ styles });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+

@@ -48,4 +48,7 @@
 
 <!-- Link CSS specific for blog detail if needed, but it's already in blog.css -->
 <link rel="stylesheet" href="./assets/css/blog.css?v=<?php echo time(); ?>">
+<script>
+  window.BLOG_SLUG = "<?= htmlspecialchars($_GET['slug'] ?? '') ?>";
+</script>
 <script src="./assets/js/blog-detail.js?v=<?php echo time(); ?>"></script>

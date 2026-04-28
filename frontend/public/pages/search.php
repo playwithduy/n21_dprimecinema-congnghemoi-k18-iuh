@@ -19,7 +19,9 @@ $data = [];
 while ($row = $result->fetch_assoc()) {
     // poster đã là đường dẫn đầy đủ từ DB (uploads/posters/...)
     // thêm base URL của file server
-    $row['poster'] = "http://127.0.0.1:3002/" . $row['poster'];
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'];
+    $row['poster'] = $protocol . $host . "/" . $row['poster'];
     $data[] = $row;
 }
 

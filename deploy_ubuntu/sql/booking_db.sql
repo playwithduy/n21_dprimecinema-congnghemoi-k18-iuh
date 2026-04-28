@@ -3161,6 +3161,105 @@ ALTER TABLE `booking_seats`
 --
 ALTER TABLE `combo_prices`
   ADD CONSTRAINT `combo_prices_ibfk_1` FOREIGN KEY (`combo_id`) REFERENCES `combos` (`id`);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reward_exchanges`
+--
+
+CREATE TABLE IF NOT EXISTS `reward_exchanges` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `item_name` varchar(255) NOT NULL,
+  `points_spent` int(11) NOT NULL,
+  `delivery_method` varchar(50) NOT NULL COMMENT 'cinema hoặc ship',
+  `pickup_cinema` varchar(255) DEFAULT NULL,
+  `ship_name` varchar(255) DEFAULT NULL,
+  `ship_phone` varchar(50) DEFAULT NULL,
+  `ship_email` varchar(255) DEFAULT NULL,
+  `ship_address` text DEFAULT NULL,
+  `qr_code` varchar(255) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user_reward` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `central_inventory`
+--
+
+CREATE TABLE IF NOT EXISTS `central_inventory` (
+  `item_name` varchar(255) NOT NULL,
+  `unit` varchar(50) NOT NULL,
+  `current_stock` decimal(10,2) DEFAULT 0.00,
+  PRIMARY KEY (`item_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `inventory_items`
+--
+
+CREATE TABLE IF NOT EXISTS `inventory_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `cinema_id` int(11) NOT NULL,
+  `item_name` varchar(255) NOT NULL,
+  `unit` varchar(50) NOT NULL,
+  `current_stock` decimal(10,2) DEFAULT 0.00,
+  `min_stock_level` decimal(10,2) DEFAULT 10.00,
+  `cost_price` decimal(10,2) DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_cinema_item` (`cinema_id`,`item_name`),
+  KEY `idx_cinema_inventory` (`cinema_id`),
+  KEY `idx_item_name` (`item_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `inventory_logs`
+--
+
+CREATE TABLE IF NOT EXISTS `inventory_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `item_id` int(11) NOT NULL,
+  `cinema_id` int(11) NOT NULL,
+  `created_by` varchar(255) NOT NULL,
+  `change_qty` decimal(10,2) NOT NULL,
+  `type` enum('import','export','adjustment') NOT NULL,
+  `note` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_log_item` (`item_id`),
+  CONSTRAINT `fk_log_item` FOREIGN KEY (`item_id`) REFERENCES `inventory_items` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `combo_ingredients`
+--
+
+CREATE TABLE IF NOT EXISTS `combo_ingredients` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `combo_id` int(11) NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `required_qty` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_ingredient_combo` (`combo_id`),
+  KEY `idx_ingredient_item` (`item_id`),
+  CONSTRAINT `fk_ingredient_item` FOREIGN KEY (`item_id`) REFERENCES `inventory_items` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ingredient_combo` FOREIGN KEY (`combo_id`) REFERENCES `combos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

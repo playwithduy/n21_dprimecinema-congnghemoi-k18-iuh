@@ -26,7 +26,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const grid = document.getElementById("coming-soon-grid");
     try {
-        const res = await fetch("http://127.0.0.1:3000/api/movies/coming-soon");
+        const API_BASE = window.location.origin + "/api";
+        const res = await fetch(`${API_BASE}/movies/coming-soon`);
         const movies = await res.json();
 
         if (!movies || movies.length === 0) {

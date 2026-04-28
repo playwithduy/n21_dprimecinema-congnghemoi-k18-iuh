@@ -21,7 +21,27 @@ exports.register = async (req, res) => {
     } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Thiếu thông tin" });
+      return res.status(400).json({ message: "Thiếu thông tin bắt buộc (email hoặc mật khẩu)" });
+    }
+
+    // Phone format validation
+    const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+    if (phone && !phoneRegex.test(phone)) {
+      return res.status(400).json({ message: "Số điện thoại không đúng định dạng Việt Nam (Bắt đầu bằng 0 hoặc +84, theo sau bởi 3, 5, 7, 8, 9 và 8 chữ số tiếp theo)" });
+    }
+
+    // Age validation (Min 16 years old)
+    if (birthday) {
+      const birthDate = new Date(birthday);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 16) {
+        return res.status(400).json({ message: "Bạn phải từ 16 tuổi trở lên mới được đăng ký thành viên" });
+      }
     }
 
     const exists = await User.findByEmail(email);
@@ -293,6 +313,26 @@ exports.updateProfile = async (req, res) => {
 
     if (!old_password) {
       return res.status(400).json({ message: "Vui lòng nhập mật khẩu hiện tại để xác nhận" });
+    }
+
+    // Phone format validation
+    const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+    if (phone && !phoneRegex.test(phone)) {
+      return res.status(400).json({ message: "Số điện thoại không đúng định dạng Việt Nam (Bắt đầu bằng 0 hoặc +84, theo sau bởi 3, 5, 7, 8, 9 và 8 chữ số tiếp theo)" });
+    }
+
+    // Age validation (Min 16 years old)
+    if (birthday) {
+      const birthDate = new Date(birthday);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 16) {
+        return res.status(400).json({ message: "Bạn phải từ 16 tuổi trở lên mới được cập nhật thông tin" });
+      }
     }
 
     const user = await User.findById(req.user.id);

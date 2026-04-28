@@ -121,8 +121,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const avatarImg = document.getElementById("user-avatar-current");
         if (avatarImg) {
             const avatarPath = user.avatar ? (user.avatar.startsWith('/') ? user.avatar : '/' + user.avatar) : null;
+            const API_BASE = window.location.origin + "/api";
             avatarImg.src = avatarPath 
-                ? `http://127.0.0.1:3000/api/auth${avatarPath}` 
+                ? `${API_BASE}/auth${avatarPath}` 
                 : `https://ui-avatars.com/api/?name=${user.username}&background=e71a0f&color=fff`;
         }
     }

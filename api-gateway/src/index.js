@@ -8,28 +8,23 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
 
-// 0. CORS — PHẢI ĐẶT TRƯỚC TẤT CẢ (kể cả helmet & proxy)
 const corsOptions = {
-  origin: true,          // Cho phép mọi origin (dev environment)
+  origin: true,
   credentials: true,
-  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization","X-Requested-With"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 };
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));  // Enable pre-flight cho tất cả routes
+app.options("*", cors(corsOptions));
 
-// 1. Security Headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// 2. Compression (Speed)
 app.use(compression());
 
-// 3. Rate Limiting (Anti-DDoS/Brute-force)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per 15 mins
+  windowMs: 15 * 60 * 1000,
   message: {
     status: 429,
     message: "Too many requests from this IP, please try again after 15 minutes"
@@ -38,14 +33,14 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Apply to all API routes
+
 app.use("/api/", limiter);
 
 // Stricter limit for auth routes to prevent brute force
 const authLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 20, // 20 attempts per hour
-    message: "Too many login attempts. Please try again after an hour."
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // 20 attempts per hour
+  message: "Too many login attempts. Please try again after an hour."
 });
 app.use("/api/auth/login", authLimiter);  // Chỉ giới hạn login, KHÔNG giới hạn /api/auth/admin/*
 
@@ -62,14 +57,22 @@ app.use(createProxyMiddleware("/api/showtimes", {
   changeOrigin: true,
   pathRewrite: { '^/api/showtimes': '/showtimes' }
 }));
+app.use(createProxyMiddleware("/api/uploads/actions", {
+  target: "http://movie-service:3002",
+  changeOrigin: true,
+  pathRewrite: { '^/api/uploads/actions': '/uploads/actions' }
+}));
 app.use(proxy("/api/booking", "booking-service"));
 app.use(proxy("/api/blog", "blog-service"));
 app.use(proxy("/api/forum", "forum-service"));
+app.use(proxy("/api/voice", "voice-ai-service"));
 
 // ===== STATIC FILES PROXY =====
 app.use('/uploads/avatars', createProxyMiddleware({ target: 'http://auth-service:3001', changeOrigin: true }));
 app.use('/uploads/posters', createProxyMiddleware({ target: 'http://movie-service:3002', changeOrigin: true }));
 app.use('/uploads/backgrounds', createProxyMiddleware({ target: 'http://movie-service:3002', changeOrigin: true }));
+app.use('/uploads/seats', createProxyMiddleware({ target: 'http://movie-service:3002', changeOrigin: true }));
+app.use('/uploads/posts', createProxyMiddleware({ target: 'http://blog-service:5556', changeOrigin: true }));
 
 // 5. Body Parser (ONLY for routes NOT proxied)
 app.use((req, res, next) => {

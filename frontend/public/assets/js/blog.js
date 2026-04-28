@@ -1,8 +1,10 @@
+(() => {
 /**
  * BLOG JS - D PRIME CINEMA
  */
 
-const BLOG_API = window.location.protocol + "//" + window.location.hostname + ":3000/api/blog";
+const API_BASE = window.location.origin + "/api";
+const BLOG_API = `${API_BASE}/blog`;
 
 document.addEventListener("DOMContentLoaded", function() {
     const token = localStorage.getItem("token");
@@ -24,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
         const adminAvatar = document.getElementById("admin-display-avatar");
         if (adminAvatar && user.avatar) {
-            adminAvatar.src = `${window.location.protocol}//${window.location.hostname}:3000/api/auth${user.avatar}`;
+            adminAvatar.src = `${API_BASE}/auth${user.avatar}`;
         }
     } else {
         // LUÔN ẨN NẾU KHÔNG PHẢI ADMIN HOẶC CHƯA ĐĂNG NHẬP
@@ -132,6 +134,26 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
+// Helper to get correct Image URL
+function getPostImageUrl(path) {
+    if (!path) return 'https://placehold.co/600x400/1a1d29/white?text=D-Prime+Cinema';
+    
+    // Nếu là URL tuyệt đối (http...), giữ nguyên hoặc sửa localhost nếu cần
+    if (path.startsWith('http')) {
+        return path.replace('localhost/N25_CNM_DPRIME/frontend/public', window.location.host);
+    }
+    
+    // Nếu đường dẫn bắt đầu bằng ./assets hoặc assets (ảnh nằm ở frontend)
+    if (path.includes('assets/images/blog')) {
+        const cleanPath = path.replace('./', '');
+        return window.location.origin + "/" + cleanPath;
+    }
+
+    // Mặc định thử lấy qua Gateway nếu là đường dẫn khác
+    const gateway = window.location.origin;
+    return gateway + (path.startsWith('/') ? path : '/' + path);
+}
+
 async function loadFeaturedPosts() {
     try {
         const res = await fetch(`${BLOG_API}/posts?limit=3`);
@@ -141,13 +163,17 @@ async function loadFeaturedPosts() {
 
         container.innerHTML = data.posts.map(post => {
             const link = window.encodeLink("blog-detail", post.slug);
+            const img = getPostImageUrl(post.image_url);
             return `
                 <div class="featured-card" onclick="window.location.href='${link}'">
-                    <img src="${post.image_url || 'https://placehold.co/600x400'}" class="featured-img" alt="${post.title}">
+                    <img src="${img}" class="featured-img" alt="${post.title}">
                     <div class="featured-info">
-                        <div class="featured-meta">${post.category} • ${post.author_name}</div>
+                        <div class="featured-meta">${post.category}</div>
                         <h4>${post.title}</h4>
-                        <div class="featured-meta"><i class="fa-solid fa-eye"></i> ${formatViews(post.views)} lượt xem</div>
+                        <div class="featured-meta" style="color:rgba(255,255,255,0.6);">
+                            <i class="fa-solid fa-user"></i> ${post.author_name} • 
+                            <i class="fa-solid fa-eye"></i> ${formatViews(post.views)}
+                        </div>
                     </div>
                 </div>
             `;
@@ -159,31 +185,34 @@ async function loadFeaturedPosts() {
 
 async function loadBlogList(page = 1, category = "") {
     try {
+        const container = document.getElementById("blog-list");
+        if (!container) return;
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>`;
+
         let url = `${BLOG_API}/posts?page=${page}&limit=6`;
         if (category) url += `&category=${encodeURIComponent(category)}`;
 
         const res = await fetch(url);
         const data = await res.json();
-        const container = document.getElementById("blog-list");
-        if (!container) return;
 
         if (data.posts.length === 0) {
-            container.innerHTML = "<p class='text-center'>Không có bài viết nào trong danh mục này.</p>";
+            container.innerHTML = "<p class='text-center' style='grid-column:1/-1; padding:50px;'>Không có bài viết nào trong danh mục này.</p>";
             return;
         }
 
         container.innerHTML = data.posts.map(post => {
             const link = window.encodeLink("blog-detail", post.slug);
+            const img = getPostImageUrl(post.image_url);
             return `
                 <div class="blog-item" onclick="window.location.href='${link}'">
-                    <img src="${post.image_url || 'https://placehold.co/400x300'}" alt="${post.title}">
+                    <img src="${img}" alt="${post.title}">
                     <div class="blog-item-content">
                         <h4>${post.title}</h4>
                         <p>${post.summary || "Bấm vào để xem chi tiết bài viết này..."}</p>
                         <div class="blog-item-meta">
                             <span><i class="fa-solid fa-user"></i> ${post.author_name}</span>
                             <span><i class="fa-solid fa-calendar"></i> ${new Date(post.created_at).toLocaleDateString("vi-VN")}</span>
-                            <span><i class="fa-solid fa-eye"></i> ${formatViews(post.views)} lượt xem</span>
+                            <span><i class="fa-solid fa-eye"></i> ${formatViews(post.views)}</span>
                         </div>
                     </div>
                 </div>
@@ -197,27 +226,7 @@ async function loadBlogList(page = 1, category = "") {
 }
 
 async function loadTrending() {
-    try {
-        const res = await fetch(`${BLOG_API}/trending`);
-        const data = await res.json();
-        const container = document.getElementById("trending-list");
-        if (!container) return;
-
-        container.innerHTML = data.map((post, index) => {
-            const link = window.encodeLink("blog-detail", post.slug);
-            return `
-                <div class="trending-item" onclick="window.location.href='${link}'">
-                    <img src="${post.image_url || 'https://placehold.co/100x80'}" class="trending-item-img">
-                    <div class="trending-item-info">
-                        <h5>${post.title}</h5>
-                        <span>${formatViews(post.views)} lượt xem</span>
-                    </div>
-                </div>
-            `;
-        }).join("");
-    } catch (err) {
-        console.error("Load trending error:", err);
-    }
+    // Optional trending logic can go here if needed
 }
 
 function renderPagination(total, page, limit, category) {
@@ -226,6 +235,11 @@ function renderPagination(total, page, limit, category) {
     if (!container) return;
 
     let html = "";
+    if (totalPages <= 1) {
+        container.innerHTML = "";
+        return;
+    }
+    
     for (let i = 1; i <= totalPages; i++) {
         html += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadBlogList(${i}, '${category}')">${i}</button>`;
     }
@@ -237,3 +251,6 @@ function formatViews(n) {
     if (n >= 1000) return (n / 1000).toFixed(1) + "k";
     return n;
 }
+
+window.loadBlogList = loadBlogList;
+})();

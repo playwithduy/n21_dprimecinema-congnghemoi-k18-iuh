@@ -1,12 +1,14 @@
+(() => {
 /**
  * BLOG DETAIL JS - D PRIME CINEMA
  */
 
-const BLOG_API = window.location.protocol + "//" + window.location.hostname + ":3000/api/blog";
+const API_BASE = window.location.origin + "/api";
+const BLOG_API = `${API_BASE}/blog`;
 
 document.addEventListener("DOMContentLoaded", function() {
     const urlParams = new URLSearchParams(window.location.search);
-    const slug = urlParams.get("slug");
+    const slug = window.BLOG_SLUG || urlParams.get("slug");
 
     if (!slug) {
         window.location.href = "index.php?p=YmxvZw==";
@@ -93,3 +95,4 @@ function formatViews(n) {
     if (n >= 1000) return (n / 1000).toFixed(1) + "k";
     return n;
 }
+})();

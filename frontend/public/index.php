@@ -6,6 +6,14 @@ if (function_exists('opcache_reset')) {
     opcache_reset();
 }
 
+require_once __DIR__ . "/includes/UrlService.php";
+
+$v = $_GET['v'] ?? '';
+$decoded = null;
+if ($v) {
+    $decoded = UrlService::decode($v);
+}
+
 // 0. SANITIZE ALL INPUTS (XSS PROTECTION)
 foreach ($_GET as $key => $value) {
     if (is_string($value)) {
@@ -13,15 +21,11 @@ foreach ($_GET as $key => $value) {
     }
 }
 
-require_once __DIR__ . "/includes/UrlService.php";
-
-
-
-$v = $_GET['v'] ?? '';
-if ($v) {
-    $decoded = UrlService::decode($v);
-    if ($decoded) {
-        foreach ($decoded as $key => $val) {
+if ($decoded) {
+    foreach ($decoded as $key => $val) {
+        if (is_string($val)) {
+            $_GET[$key] = htmlspecialchars(strip_tags($val), ENT_QUOTES, 'UTF-8');
+        } else {
             $_GET[$key] = $val;
         }
     }
@@ -47,7 +51,7 @@ if ($v && isset($decoded['p'])) {
 
 
 
-$allowedPages = ['home', 'login', 'register', 'forgot-password', 'account', 'movie', 'movies', 'schedule-today', 'booking-seat', 'admin', 'booking-combo', 'payment','my-tickets', 'forum', 'thread', 'blog', 'blog-detail', 'news-offers', 'now-showing', 'coming-soon' ];
+$allowedPages = ['home', 'login', 'register', 'forgot-password', 'account', 'movie', 'movies', 'schedule-today', 'booking-seat', 'admin', 'booking-combo', 'payment','my-tickets', 'forum', 'thread', 'blog', 'blog-detail', 'news-offers', 'now-showing', 'coming-soon', 'shop' ];
 
 require __DIR__ . "/layouts/header.php";
 

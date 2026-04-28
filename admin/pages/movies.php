@@ -12,7 +12,9 @@
                     <th width="80">Poster</th>
                     <th>Tên Phim</th>
                     <th>Ngày Khởi Chiếu</th>
+                    <th>Ngày Rời Rạp</th>
                     <th>Thời Lượng</th>
+                    <th>Doanh Thu</th>
                     <th>Trạng Thái</th>
                     <th width="120">Thao Tác</th>
                 </tr>
@@ -75,6 +77,10 @@
                         <label>Ngày Khởi Chiếu *</label>
                         <input type="date" id="mv_release" class="form-control" required>
                     </div>
+                    <div class="form-group">
+                        <label>Ngày Rời Rạp</label>
+                        <input type="date" id="mv_end" class="form-control">
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -108,6 +114,7 @@
     .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .status-badge.now { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.3); }
     .status-badge.soon { background: rgba(241, 196, 15, 0.1); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.3); }
+    .status-badge.left { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.3); }
     
     .action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; font-size: 16px; transition: color 0.2s; }
     .action-btn.edit:hover { color: #3498db; }
@@ -156,11 +163,20 @@ async function loadMovies() {
         }
 
         const today = new Date();
+        today.setHours(0,0,0,0);
 
         tbody.innerHTML = movies.map(m => {
             const rDate = new Date(m.release_date);
             let statusHTML = '';
-            if (rDate > today) {
+            
+            let eDate = null;
+            if (m.end_date) {
+                eDate = new Date(m.end_date);
+            }
+
+            if (eDate && today >= eDate) {
+                statusHTML = '<span class="status-badge left">Đã rời rạp</span>';
+            } else if (rDate > today) {
                 statusHTML = '<span class="status-badge soon">Sắp chiếu</span>';
             } else {
                 statusHTML = '<span class="status-badge now">Đang chiếu</span>';
@@ -175,7 +191,9 @@ async function loadMovies() {
                 <td><img src="${API.getAssetUrl(m.poster)}" class="tb-poster" alt="poster"></td>
                 <td><div class="tb-title">${m.title}</div><small style="color: #94a3b8;">${m.age_limit || 'T13'}</small></td>
                 <td>${rDate.toLocaleDateString("vi-VN")}</td>
+                <td>${eDate ? eDate.toLocaleDateString("vi-VN") : '<span style="color: #94a3b8;">Chưa có</span>'}</td>
                 <td>${m.duration} phút</td>
+                <td style="color: #2ecc71; font-weight: bold;">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(m.revenue || 0)}</td>
                 <td>${statusHTML}</td>
                 <td>
                     <button class="action-btn edit" title="Sửa" onclick="editMovie('${safeData}')"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -213,12 +231,17 @@ function editMovie(encodedData) {
     document.getElementById("mv_genres").value = m.genres || '';
     document.getElementById("mv_duration").value = m.duration || '';
     
-    // Convert release date format for input type=date
-    if (m.release_date) {
-        const d = new Date(m.release_date);
-        const dateStr = d.toISOString().split('T')[0];
-        document.getElementById("mv_release").value = dateStr;
-    }
+    // Convert date formats safely for input type=date (timezone-safe)
+    const formatDateForInput = (dateVal) => {
+        if (!dateVal) return '';
+        if (typeof dateVal === 'string') {
+            return dateVal.split('T')[0];
+        }
+        return '';
+    };
+
+    document.getElementById("mv_release").value = formatDateForInput(m.release_date);
+    document.getElementById("mv_end").value = formatDateForInput(m.end_date);
     
     document.getElementById("mv_desc").value = m.description || '';
     
@@ -237,6 +260,7 @@ async function saveMovie() {
         genres: document.getElementById("mv_genres").value,
         duration: document.getElementById("mv_duration").value,
         release_date: document.getElementById("mv_release").value,
+        end_date: document.getElementById("mv_end").value || null,
         description: document.getElementById("mv_desc").value
     };
 

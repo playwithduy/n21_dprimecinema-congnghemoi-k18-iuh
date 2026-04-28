@@ -240,7 +240,7 @@ async function loadCombos() {
         tbody.innerHTML = combos.map(cb => `
             <tr>
                 <td style="font-weight:700;color:var(--text-muted)">#${cb.id}</td>
-                <td><img src="../frontend/public/assets/images/combo/${cb.image || 'combo1.png'}" class="combo-image" onerror="this.src='https://ui-avatars.com/api/?name=Combo&background=random'"></td>
+                <td><img src="${window.location.protocol}//${window.location.hostname}/assets/images/combo/${cb.image || 'combo1.png'}" class="combo-image" onerror="this.src='https://ui-avatars.com/api/?name=Combo&background=random'"></td>
                 <td style="color:#fff;font-weight:700">${cb.name}</td>
                 <td style="font-size:13px">${cb.description || '<i>Không có mô tả</i>'}</td>
                 <td style="color:#2ecc71;font-weight:800;font-size:16px">${parseInt(cb.price).toLocaleString('vi-VN')} ₫</td>

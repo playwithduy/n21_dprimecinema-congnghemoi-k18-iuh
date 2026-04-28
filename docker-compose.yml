@@ -26,6 +26,7 @@ services:
       - auth-service
       - movie-service
       - booking-service
+      - voice-ai-service
     networks:
       - dprime-network
 
@@ -52,6 +53,9 @@ services:
       - DB_HOST=db-main
       - DB_USER=root
       - DB_PASSWORD=root_password
+    volumes:
+      - ./services/movie-service:/app
+      - /app/node_modules
     depends_on:
       - db-main
     networks:
@@ -110,6 +114,23 @@ services:
       - DB_PASSWORD=root_password
     ports:
       - "3005:3005"
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  voice-ai-service:
+    build:
+      context: ./services/voice-ai-service
+    container_name: dprime-voice-service
+    env_file: ./services/voice-ai-service/.env
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+      - GEMINI_API_KEY=AIzaSyCqyP8lydLNYoqxeEE9IPmTpOCQNWQmllw
+    ports:
+      - "3007:3007"
     depends_on:
       - db-main
     networks:

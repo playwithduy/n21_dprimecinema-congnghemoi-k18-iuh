@@ -62,7 +62,7 @@ async function loadShowtimeInfo() {
     try {
         const res = await fetch(`${window.APP_CONFIG.API_BASE}/booking/showtimes/${SHOWTIME_ID}`);
         const data = await res.json();
-        const movieName = data.movie_name || "";
+        const movieName = data.movie_name || data.name || "";
         const info = `${data.cinema_name || ""} • ${data.room_name || ""} • ${data.show_time || ""}`;
         
         if (movieNameEl) movieNameEl.innerText = movieName;
@@ -72,11 +72,15 @@ async function loadShowtimeInfo() {
         
         roomCentralMetadata = data.central_metadata;
         if (typeof roomCentralMetadata === 'string') {
-            try { roomCentralMetadata = JSON.parse(roomCentralMetadata); } catch(e) {}
+            try { 
+                roomCentralMetadata = JSON.parse(roomCentralMetadata); 
+            } catch(e) {
+                console.log("Parse central metadata failed:", e);
+            }
         }
 
-        // Nếu đã tải xong giá ghế và sơ đồ rồi thì re-render để hiện vùng trung tâm
-        if (Object.keys(seatPrices).length > 0 && Object.keys(seatState).length > 0) {
+        // Force re-render to highlight central zone if seats are already loaded
+        if (Object.keys(seatState).length > 0) {
             renderSeats();
         }
 
@@ -84,7 +88,7 @@ async function loadShowtimeInfo() {
         if (data.seat_styles) {
             const root = document.documentElement;
             const s = data.seat_styles;
-            const apiBase = window.APP_CONFIG.API_BASE;
+            const uploadBase = window.APP_CONFIG.API_BASE.replace('/api', '');
 
             if (s.colors) {
                 if (s.colors.normal) root.style.setProperty('--seat-normal', s.colors.normal);
@@ -93,7 +97,13 @@ async function loadShowtimeInfo() {
                 if (s.colors.sold) root.style.setProperty('--seat-sold', s.colors.sold);
             }
             if (s.images) {
-                const getUrl = (path) => path.startsWith('http') ? `url('${path}')` : `url('${apiBase}/${path}')`;
+                const getUrl = (path) => {
+                    if (!path) return 'none';
+                    if (path.startsWith('http')) return `url('${path}')`;
+                    // Ensure path doesn't have leading slash if uploadBase has trailing or vice-versa
+                    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+                    return `url('${uploadBase}/${cleanPath}')`;
+                };
                 if (s.images.normal) root.style.setProperty('--img-normal', getUrl(s.images.normal));
                 if (s.images.vip) root.style.setProperty('--img-vip', getUrl(s.images.vip));
                 if (s.images.sweetbox) root.style.setProperty('--img-sweetbox', getUrl(s.images.sweetbox));
@@ -108,8 +118,21 @@ async function loadShowtimeInfo() {
                 moviePosterEl.src = "https://placehold.co/300x450/0b0f19/e50914?text=No+Poster";
             };
         }
+
+        // FALLBACK: Nếu vẫn rỗng, thử lấy từ localStorage (đã lưu khi click Mua vé)
+        if (!movieNameEl.innerText || movieNameEl.innerText === ".." || movieNameEl.innerText === "Đang tải phim...") {
+            const pending = JSON.parse(localStorage.getItem('pending_booking') || "{}");
+            const localMovieName = pending.movie_name || localStorage.getItem('selected_movie_title');
+            if (localMovieName) {
+                movieNameEl.innerText = localMovieName;
+                if (movieNameFooterEl) movieNameFooterEl.innerText = localMovieName;
+            }
+        }
     } catch (err) {
         console.log("loadShowtimeInfo error:", err);
+        // Catch-all fallback
+        const localMovieName = localStorage.getItem('selected_movie_title');
+        if (localMovieName && movieNameEl) movieNameEl.innerText = localMovieName;
     }
 }
 
@@ -392,7 +415,9 @@ function renderSeats() {
         seatMap.appendChild(rowDiv);
     });
 
+    // Gọi lại highlight sau khi DOM đã ổn định
     setTimeout(highlightCentralZone, 100);
+    setTimeout(highlightCentralZone, 500); // Thử lại lần nữa cho chắc
 }
 
 function highlightCentralZone() {

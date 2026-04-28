@@ -1,9 +1,11 @@
 (function() {
     "use strict";
 
-    const AUTH_API = window.location.protocol + "//" + window.location.hostname + ":3000/api/auth";
-    const MOVIE_API = window.location.protocol + "//" + window.location.hostname + ":3000/api/movies";
-    const BOOKING_API = window.location.protocol + "//" + window.location.hostname + ":3000/api/booking";
+    const API_BASE = window.location.origin + "/api";
+    const AUTH_API = `${API_BASE}/auth`;
+    const MOVIE_API = `${API_BASE}/movies`;
+    const BOOKING_API = `${API_BASE}/booking`;
+    const SHOWTIME_API = `${API_BASE}/showtimes`;
 
     const accountContainer = document.querySelector(".account-container");
     if (!accountContainer) return;
@@ -33,11 +35,167 @@
             if (targetTab) targetTab.style.display = "block";
 
             if (sectionId === "section-detail") loadProfileForEdit();
+            if (sectionId === "section-membership") loadMembership();
+            if (sectionId === "section-points") loadPoints();
             if (sectionId === "section-payment-pin") checkPinStatus();
             if (sectionId === "section-coupon") loadCoupons();
             if (sectionId === "section-history") loadTransactionHistory();
         });
     });
+
+    // ================= REWARD POINTS =================
+    async function loadPoints() {
+        try {
+            const res = await fetch(`${AUTH_API}/me`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await res.json();
+            
+            const points = data.reward_points || 0;
+            const spending = parseFloat(data.total_spending || 0);
+            
+            // Calculate progress to next point (each 100k)
+            const currentMod = spending % 100000;
+            const percent = (currentMod / 100000) * 100;
+
+            const displayPoints = document.getElementById("display-points-large");
+            const nextPointVal = document.getElementById("next-point-val");
+            const nextPointFill = document.getElementById("next-point-fill");
+
+            if (displayPoints) displayPoints.textContent = points;
+            if (nextPointVal) nextPointVal.textContent = `${new Intl.NumberFormat('vi-VN').format(currentMod)} / 100.000 đ`;
+            if (nextPointFill) nextPointFill.style.width = `${percent}%`;
+
+            // Note: In a real system, you'd fetch points history from a separate table.
+            // For now, we'll show a sample history if points > 0.
+            const historyBody = document.getElementById("points-history-body");
+            if (historyBody && points > 0) {
+                // We'll just show the last transaction as an example
+                historyBody.innerHTML = `
+                    <tr>
+                        <td>${new Date().toLocaleDateString('vi-VN')}</td>
+                        <td>Tích điểm mua vé</td>
+                        <td>---</td>
+                        <td style="color:#f1c40f; font-weight:bold;">+${points} P</td>
+                    </tr>
+                `;
+            }
+
+        } catch (err) {
+            console.error("Load points failed", err);
+        }
+    }
+
+    // ================= MEMBERSHIP =================
+    async function loadMembership() {
+        const container = document.getElementById("membership-card-container");
+        if (!container) return;
+
+        try {
+            // Re-fetch user to get latest spending/rank
+            const res = await fetch(`${AUTH_API}/me`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await res.json();
+            
+            const spending = parseFloat(data.total_spending || 0);
+            
+            // Sử dụng Unicode Escape để tránh lỗi font/mã hóa (Đồng, Bạc, Vàng...)
+            const RANK_NAMES = {
+                DONG: "\u0110\u1ed3ng",
+                BAC: "B\u1ea1c",
+                VANG: "V\u00e0ng",
+                KIM_CUONG: "Kim c\u01b0\u01a1ng",
+                RUBY: "Ruby"
+            };
+
+            const rank = data.membership_rank || RANK_NAMES.DONG;
+            
+            let nextRank = RANK_NAMES.BAC;
+            let nextGoal = 500000;
+            let currentGoal = 0;
+            let discount = '0%';
+            let cardClass = 'card-dong';
+
+            if (rank === RANK_NAMES.RUBY) {
+                nextRank = 'T\u1ed0I \u0110A';
+                nextGoal = spending;
+                discount = '50%';
+                cardClass = 'card-ruby';
+            } else if (rank === RANK_NAMES.KIM_CUONG) {
+                nextRank = RANK_NAMES.RUBY;
+                nextGoal = 20000000;
+                currentGoal = 10000000;
+                discount = '30%';
+                cardClass = 'card-kimcuong';
+            } else if (rank === RANK_NAMES.VANG) {
+                nextRank = RANK_NAMES.KIM_CUONG;
+                nextGoal = 10000000;
+                currentGoal = 2000000;
+                discount = '20%';
+                cardClass = 'card-vang';
+            } else if (rank === RANK_NAMES.BAC) {
+                nextRank = RANK_NAMES.VANG;
+                nextGoal = 2000000;
+                currentGoal = 500000;
+                discount = '10%';
+                cardClass = 'card-bac';
+            } else {
+                nextRank = RANK_NAMES.BAC;
+                nextGoal = 500000;
+                currentGoal = 0;
+                discount = '0%';
+                cardClass = 'card-dong';
+            }
+
+            const percent = rank === 'Ruby' ? 100 : Math.min(100, Math.max(0, ((spending - currentGoal) / (nextGoal - currentGoal)) * 100));
+
+            let rankIcon = 'fa-seedling';
+            if (rank === 'Ruby') rankIcon = 'fa-fire';
+            else if (rank === 'Kim cương') rankIcon = 'fa-gem';
+            else if (rank === 'Vàng') rankIcon = 'fa-crown';
+            else if (rank === 'Bạc') rankIcon = 'fa-star';
+
+            container.innerHTML = `
+                <div class="membership-card ${cardClass}">
+                    <i class="fa-solid ${rankIcon} card-icon-bg"></i>
+                    <div class="card-header">
+                        <div class="card-logo">D-PRIME <span>CINEMA</span></div>
+                    </div>
+                    <div class="card-chip"></div>
+                    <div class="card-body">
+                        <h3>${data.fullname}</h3>
+                    </div>
+                    <div class="card-footer">
+                        <div class="spending-info">
+                            <p>TỔNG CHI TIÊU</p>
+                            <b>${new Intl.NumberFormat('vi-VN').format(spending)} đ</b>
+                        </div>
+                        <div class="benefit-info">
+                            <span>${discount}</span>
+                            <small>GIẢM GIÁ VÉ</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Tiến trình lên hạng <b>${nextRank}</b></span>
+                        <span>${new Intl.NumberFormat('vi-VN').format(spending)} / ${new Intl.NumberFormat('vi-VN').format(nextGoal)}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: ${percent}%"></div>
+                    </div>
+                    <p style="font-size:12px; color:#94a3b8; margin-top:10px; text-align:center;">
+                        ${rank === 'Ruby' ? 'Bạn đã đạt hạng cao nhất!' : `Cần chi thêm <b>${new Intl.NumberFormat('vi-VN').format(nextGoal - spending)} đ</b> để lên hạng <b>${nextRank}</b>`}
+                    </p>
+                </div>
+            `;
+
+        } catch (err) {
+            container.innerHTML = `<div class="error-cell">Lỗi tải thông tin thẻ.</div>`;
+        }
+    }
 
     // ================= LOAD USER PROFILE =================
     async function loadUser() {
@@ -57,9 +215,36 @@
             setText("info-name", data.fullname);
             setText("info-email", data.email);
             setText("info-phone", data.phone);
-            setText("info-gender", data.gender);
-            setText("info-birthday", data.birthday ? new Date(data.birthday).toLocaleDateString('vi-VN') : "---");
-            setText("info-region", data.region);
+            const fullnameEl = document.getElementById("fullname");
+            const infoName = document.getElementById("info-name");
+            const infoEmail = document.getElementById("info-email");
+            const infoPhone = document.getElementById("info-phone");
+            const infoBirthday = document.getElementById("info-birthday");
+            const infoGender = document.getElementById("info-gender");
+            const infoRegion = document.getElementById("info-region");
+            const infoCinema = document.getElementById("info-cinema");
+            
+            const infoRank = document.getElementById("info-rank");
+            const infoSpending = document.getElementById("info-total-spending");
+            const infoPoints = document.getElementById("info-reward-points");
+
+            if (fullnameEl) fullnameEl.textContent = data.fullname || "Khách hàng";
+            if (infoName) infoName.textContent = data.fullname || "---";
+            if (infoEmail) infoEmail.textContent = data.email || "---";
+            if (infoPhone) infoPhone.textContent = data.phone || "---";
+            if (infoBirthday) infoBirthday.textContent = data.birthday ? new Date(data.birthday).toLocaleDateString('vi-VN') : "---";
+            if (infoGender) infoGender.textContent = data.gender || "---";
+            if (infoRegion) infoRegion.textContent = data.region || "---";
+            if (infoCinema) infoCinema.textContent = data.favorite_cinema || "---";
+            
+            if (infoRank) infoRank.textContent = data.membership_rank || "Đồng";
+            if (infoSpending) infoSpending.textContent = new Intl.NumberFormat('vi-VN').format(data.total_spending || 0) + " đ";
+            if (infoPoints) infoPoints.textContent = (data.reward_points || 0) + " P";
+
+            if (data.avatar) {
+                const avatarImg = document.getElementById("avatar-img");
+                if (avatarImg) avatarImg.src = getAssetUrl(data.avatar);
+            }
             setText("info-cinema", data.favorite_cinema);
 
             updateAvatarUI(data);
@@ -76,7 +261,7 @@
 
     function updateAvatarUI(data) {
         const fallback = "https://ui-avatars.com/api/?name=" + encodeURIComponent(data.fullname || "U") + "&background=e71a0f&color=fff";
-        const avatarUrl = data.avatar ? `${window.location.protocol}//${window.location.hostname}:3000/api/auth${data.avatar}` : fallback;
+        const avatarUrl = data.avatar ? `${API_BASE}/auth${data.avatar}` : fallback;
 
         // Main Profile Avatar
         const avatarImg = document.getElementById("avatar-img");
@@ -267,39 +452,81 @@
     }
 
     async function loadCities(selected) {
-        const res = await fetch(`${MOVIE_API}/showtimes/cities`);
+        const res = await fetch(`${SHOWTIME_API}/cities`);
         const cities = await res.json();
         const select = document.getElementById("edit-city");
         if (!select) return;
         select.innerHTML = '<option value="">Chọn Tỉnh/Thành</option>';
         cities.forEach(c => {
             const opt = document.createElement("option");
-            opt.value = c.city_name; opt.textContent = c.city_name;
-            if (c.city_name === selected) opt.selected = true;
+            opt.value = c.name; opt.textContent = c.name;
+            if (c.name === selected) opt.selected = true;
             select.appendChild(opt);
         });
     }
 
     async function loadCinemas(selected) {
-        const res = await fetch(`${MOVIE_API}/showtimes/cinemas`);
+        const res = await fetch(`${SHOWTIME_API}/cinemas`);
         const cinemas = await res.json();
         const select = document.getElementById("edit-cinema");
         if (!select) return;
         select.innerHTML = '<option value="">Chọn rạp yêu thích</option>';
         cinemas.forEach(c => {
             const opt = document.createElement("option");
-            opt.value = c.cinema_name; opt.textContent = c.cinema_name;
-            if (c.cinema_name === selected) opt.selected = true;
+            opt.value = c.name; opt.textContent = c.name;
+            if (c.name === selected) opt.selected = true;
             select.appendChild(opt);
         });
     }
 
     const formProfile = document.getElementById("form-update-profile");
     if (formProfile) {
+        // Restrict phone field to digits and plus symbol
+        const editPhone = document.getElementById("edit-phone");
+        if (editPhone) {
+            editPhone.addEventListener('input', function() {
+                this.value = this.value.replace(/[^\d+]/g, '');
+            });
+        }
+
+        // Limit birthday date picker to max 16 years ago
+        const editBirthday = document.getElementById("edit-birthday");
+        if (editBirthday) {
+            const maxDate = new Date();
+            maxDate.setFullYear(maxDate.getFullYear() - 16);
+            const yyyy = maxDate.getFullYear();
+            const mm = String(maxDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(maxDate.getDate()).padStart(2, '0');
+            editBirthday.max = `${yyyy}-${mm}-${dd}`;
+        }
+
         formProfile.addEventListener("submit", async (e) => {
             e.preventDefault();
             const fd = new FormData(formProfile);
             const data = Object.fromEntries(fd.entries());
+
+            // Phone Validation
+            const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+            if (data.phone && !phoneRegex.test(data.phone)) {
+                alert("❌ Số điện thoại không đúng định dạng Việt Nam (Bắt đầu bằng 0 hoặc +84, theo sau bởi 3, 5, 7, 8, 9 và 8 chữ số tiếp theo).");
+                return;
+            }
+
+            // Age Validation (Min 16)
+            if (data.birthday) {
+                const birthDate = new Date(data.birthday);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                if (age < 16) {
+                    alert("❌ Bạn phải từ 16 tuổi trở lên mới được cập nhật thông tin.");
+                    return;
+                }
+            }
+
             const chk = document.getElementById("check-change-pass");
             if (chk && chk.checked) {
                 const np = document.getElementById("edit-new-password").value;

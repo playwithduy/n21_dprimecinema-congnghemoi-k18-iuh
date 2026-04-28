@@ -11,7 +11,7 @@ function walk(currentDir) {
             walk(fullPath);
         } else if (fullPath.endsWith('.php') || fullPath.endsWith('.js') || fullPath.endsWith('.css') || fullPath.endsWith('.html')) {
             let content = fs.readFileSync(fullPath, 'utf8');
-            
+
             // Regex to find "index.php?page=" followed by word-like characters
             const regex = /index\.php\?page=([a-zA-Z0-9-]+)/g;
             let modified = false;

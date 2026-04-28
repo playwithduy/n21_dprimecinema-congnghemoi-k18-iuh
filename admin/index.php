@@ -16,10 +16,13 @@ $allowedPages = [
     'bookings', 
     'users', 
     'promotions',
+    'inventory',
     'reports',
     'checkin',
+    'tickets',
     'notifications',
-    'settings'
+    'settings',
+    'reward-exchanges'
 ];
 
 if (!in_array($page, $allowedPages)) {

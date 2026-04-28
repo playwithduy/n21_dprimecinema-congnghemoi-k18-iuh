@@ -5,6 +5,7 @@ const translations = {
         "nav_schedule": "LỊCH CHIẾU",
         "nav_blog": "BLOG",
         "nav_forum": "DIỄN ĐÀN",
+        "nav_shop": "SHOP ĐIỂM THƯỞNG",
         "nav_schedule_today": "Lịch chiếu hôm nay",
         "nav_now_showing": "Phim đang chiếu",
         "nav_coming_soon": "Phim sắp chiếu",
@@ -14,8 +15,14 @@ const translations = {
         "search_placeholder": "Tìm kiếm phim...",
         "top_news": "Tin mới & ưu đãi",
         "my_tickets": "Vé của tôi",
+        "profile": "Hồ sơ",
+        "logout": "Đăng xuất",
         "login": "Đăng nhập",
         "register": "Đăng ký",
+        "chat_trigger_title": "Hỏi phim với AI",
+        "chat_header": "🤖 D'Prime Assistant",
+        "chat_welcome": "Xin chào! Mình là AI hỗ trợ của D'Prime. Bạn muốn tìm phim gì hôm nay? (Thử gõ: \"phim hay nhất\", \"phim kinh dị 18+\", \"gia đình\", \"đang chiếu\", \"cách đặt vé\")",
+        "chat_placeholder": "Nhập để hỏi phim...",
         "now_showing": "PHIM ĐANG CHIẾU",
         "coming_soon": "PHIM SẮP CHIẾU",
         "event_title": "SỰ KIỆN",
@@ -91,6 +98,7 @@ const translations = {
         "nav_schedule": "SCHEDULE",
         "nav_blog": "BLOG",
         "nav_forum": "FORUM",
+        "nav_shop": "REWARD SHOP",
         "nav_schedule_today": "Today's Schedule",
         "nav_now_showing": "Now Showing",
         "nav_coming_soon": "Coming Soon",
@@ -100,8 +108,14 @@ const translations = {
         "search_placeholder": "Search movies...",
         "top_news": "News & Offers",
         "my_tickets": "My Tickets",
+        "profile": "Profile",
+        "logout": "Logout",
         "login": "Login",
         "register": "Register",
+        "chat_trigger_title": "Ask AI",
+        "chat_header": "🤖 D'Prime Assistant",
+        "chat_welcome": "Hello! I am D'Prime AI. What movie are you looking for today? (Try: \"best movies\", \"horror 18+\", \"family\", \"now showing\", \"how to book\")",
+        "chat_placeholder": "Type to ask...",
         "now_showing": "NOW SHOWING",
         "coming_soon": "COMING SOON",
         "event_title": "EVENTS",
@@ -183,6 +197,8 @@ function setLanguage(lang) {
         if (translations[lang] && translations[lang][key]) {
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                 el.placeholder = translations[lang][key];
+            } else if (el.hasAttribute('title')) {
+                el.title = translations[lang][key];
             } else {
                 el.innerText = translations[lang][key];
             }

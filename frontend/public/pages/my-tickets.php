@@ -132,28 +132,17 @@
 
                 <div class="cgv-separator">=================================</div>
 
-                <!-- BOOKING CODE & BARCODE -->
-                <div class="cgv-code-section">
-                    <div class="cgv-code-label">MA DAT VE</div>
-                    
-                    <!-- 1D BARCODE -->
-                    <div class="cgv-barcode-wrap">
-                        <svg id="ticket-barcode"></svg>
+                <!-- SMART QR CODE (PRIORITY 1) -->
+                <div class="cgv-code-section" style="padding: 5px 0;">
+                    <div class="cgv-qr-label" style="font-size: 10px; margin-bottom: 5px;">SMART TICKET QR (DYNAMIC)</div>
+                    <div class="smart-qr-wrap" style="padding: 5px; margin: 0 auto; width: 140px; background: #fff; border: 1px solid #d0a0a3;">
+                        <img id="ticket-smart-qr" src="" alt="QR" style="width:130px; height:130px; display:block;">
+                        <div class="qr-refresh-timer" style="margin-top: 5px; height: 2px;"><div class="timer-bar" id="qr-timer-bar"></div></div>
                     </div>
-
-                    <div class="cgv-code-hint">Xuat trinh ma nay tai quay khi den rap</div>
+                    <div class="cgv-code-hint" style="font-size: 8px; margin-top: 3px;">Mã tự động làm mới để bảo mật</div>
                 </div>
 
-                <div class="cgv-separator">- - - - - - - - - - - - - - - - -</div>
-
-                <!-- QR CODE -->
-                <div class="cgv-qr-section">
-                    <div class="cgv-qr-label">QUET QR XAC NHAN VE</div>
-                    <div class="cgv-qr-wrap">
-                        <img id="modal-qr" src="" alt="QR ve" class="cgv-qr-img" crossorigin="anonymous" />
-                    </div>
-                    <div class="cgv-qr-hint">Nhan vien quet ma nay tai quay</div>
-                </div>
+                <div class="cgv-separator">=================================</div>
 
                 <!-- FOOTER TEXT -->
                 <div class="cgv-footer-text">
@@ -208,9 +197,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-height: 92vh;
+    max-height: 95vh; /* Tăng chiều cao tối đa */
     overflow-y: auto;
     overflow-x: hidden;
+    padding-bottom: 20px;
 }
 
 .ticket-modal-close {
@@ -232,8 +222,8 @@
 
 /* ---- CGV Ticket shell ---- */
 .cgv-ticket {
-    width: 340px;
-    background: #f5c8cc;   /* CGV pink */
+    width: 380px; /* Tăng chiều rộng để vé cân đối hơn */
+    background: #f5c8cc; 
     font-family: 'Share Tech Mono', 'Courier New', monospace;
     color: #111;
     box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
@@ -343,10 +333,10 @@
 
 /* ---- Body ---- */
 .cgv-body {
-    padding: 14px 18px 18px;
+    padding: 8px 15px 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 3px;
 }
 
 .cgv-venue {
@@ -377,11 +367,10 @@
 .cgv-movie-block { margin: 4px 0; }
 .cgv-movie-title {
     font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 900;
-    font-size: 22px;
+    font-size: 18px; /* Thu nhỏ tiêu đề phim */
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    line-height: 1.1;
+    line-height: 1;
     color: #1a1a1a;
 }
 .cgv-movie-meta {
@@ -408,6 +397,7 @@
     text-align: right;
     max-width: 180px;
     color: #111;
+    font-size: 10px; /* Thu nhỏ text thông tin */
 }
 
 /* Total row */
@@ -564,4 +554,53 @@
 /* Scrollbar inside modal */
 .ticket-modal-wrap::-webkit-scrollbar { width: 4px; }
 .ticket-modal-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+/* Smart QR styling */
+.smart-qr-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    padding: 6px;
+    border: 1px solid #d0a0a3;
+    border-radius: 6px;
+    margin: 4px 0;
+}
+.smart-qr-wrap img {
+    width: 120px; /* Thu nhỏ QR thêm chút nữa */
+    height: 120px;
+}
+.qr-refresh-timer {
+    width: 100%;
+    height: 2px;
+    background: #f0f0f0;
+    margin-top: 5px;
+    border-radius: 1px;
+    overflow: hidden;
+}
+.timer-bar {
+    height: 100%;
+    width: 100%;
+    background: #c0373d;
+    transition: width 1s linear;
+}
+
+/* Wallet Integration */
+.wallet-integration {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 5px 0;
+}
+.wallet-btn {
+    height: 24px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.wallet-btn:hover { transform: scale(1.05); }
+.wallet-btn img { height: 100%; }
+
+.ticket-modal-wrap {
+    padding-bottom: 40px;
+}
 </style>

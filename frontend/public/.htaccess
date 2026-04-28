@@ -46,6 +46,13 @@
 # 3. URL REWRITING (For pretty URLs if needed)
 RewriteEngine On
 
+# PROXY API REQUESTS TO API-GATEWAY
+RewriteCond %{HTTP:Upgrade} websocket [NC]
+RewriteRule ^socket.io/(.*)$ ws://socket-service:3005/socket.io/$1 [P,L]
+
+RewriteRule ^api/(.*)$ http://api-gateway:3000/api/$1 [P,L]
+RewriteRule ^uploads/(.*)$ http://api-gateway:3000/uploads/$1 [P,L]
+
 # Capture /v/slug--encoded format
 RewriteRule ^v/(.*)$ index.php?v=$1 [L,QSA]
 

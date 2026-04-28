@@ -6,7 +6,7 @@
     <title>D PRIME - Admin Dashboard</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="../frontend/public/assets/images/icondprime.png">
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -145,7 +145,7 @@
         const user = JSON.parse(userStr);
         if (user.role !== 'admin') {
             alert("🔒 Access Denied! Khu vực này chỉ dành cho Quản Trị Viên.");
-            window.location.href = "../frontend/public/index.php";
+            window.location.href = window.location.protocol + "//" + window.location.hostname;
         } else {
             // Allow render
             document.addEventListener("DOMContentLoaded", () => {
@@ -170,7 +170,7 @@
     <aside class="sidebar">
         <div class="sidebar-logo">
             <!-- Reuse frontend logo -->
-            <img src="../frontend/public/assets/images/logo.png" alt="Logo">
+            <img src="assets/images/logo.png" alt="Logo">
             <span>D PRIME <span class="highlight">ADMIN</span></span>
         </div>
         
@@ -195,17 +195,26 @@
             <a href="index.php?page=bookings" class="nav-item <?php echo $page == 'bookings' ? 'active' : ''; ?>">
                 <i class="fa-solid fa-ticket-simple"></i> Đặt vé
             </a>
+            <a href="index.php?page=reward-exchanges" class="nav-item <?php echo $page == 'reward-exchanges' ? 'active' : ''; ?>">
+                <i class="fa-solid fa-gift"></i> Quản lý Đổi quà
+            </a>
             <a href="index.php?page=users" class="nav-item <?php echo $page == 'users' ? 'active' : ''; ?>">
                 <i class="fa-solid fa-users"></i> Khách hàng
             </a>
             <a href="index.php?page=promotions" class="nav-item <?php echo $page == 'promotions' ? 'active' : ''; ?>">
                 <i class="fa-solid fa-tag"></i> Khuyến mãi
             </a>
+            <a href="index.php?page=inventory" class="nav-item <?php echo $page == 'inventory' ? 'active' : ''; ?>">
+                <i class="fa-solid fa-warehouse"></i> Quản lý Kho (F&B)
+            </a>
             <a href="index.php?page=reports" class="nav-item <?php echo $page == 'reports' ? 'active' : ''; ?>">
                 <i class="fa-solid fa-chart-line"></i> Thống kê / Báo cáo
             </a>
             <a href="index.php?page=checkin" class="nav-item <?php echo $page == 'checkin' ? 'active' : ''; ?>">
                 <i class="fa-solid fa-qrcode"></i> QR Check-in
+            </a>
+            <a href="index.php?page=tickets" class="nav-item <?php echo $page == 'tickets' ? 'active' : ''; ?>">
+                <i class="fa-solid fa-list-check"></i> Lịch sử Vé
             </a>
 
             <div class="nav-label" style="margin-top: 20px;">Systems</div>
@@ -230,10 +239,13 @@
                         'showtimes' => 'Lịch Chiếu & Khung Giờ',
                         'rooms' => 'Sơ Đồ Phòng Chiếu',
                         'bookings' => 'Giao Dịch Bán Vé',
+                        'reward-exchanges' => 'Quản Lý Đổi Quà Tặng',
                         'users' => 'Tài Khoản Người Dùng',
                         'promotions' => 'Mã Giảm Giá & Combo',
+                        'inventory' => 'Quản Lý Kho Nguyên Liệu',
                         'reports' => 'Báo cáo & Thống kê Chi tiết',
                         'checkin' => 'Soát vé QR Code',
+                        'tickets' => 'Quản Lý Lịch Sử Vé',
                         'notifications' => 'Broadcast & Alerts',
                         'settings' => 'System Settings'
                     ];

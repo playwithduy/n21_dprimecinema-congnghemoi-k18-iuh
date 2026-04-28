@@ -27,6 +27,7 @@ require('./router/showtime.route')(app);
 require('./router/payment.route')(app);    
 require('./router/paymentPIN.route')(app);
 require('./router/coupon.route')(app);
+require('./router/rewardExchange.route')(app);
 require('./router/admin.route')(app);  // 🔐 Admin endpoints
 
 

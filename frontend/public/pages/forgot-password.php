@@ -55,7 +55,8 @@ document.getElementById('forgotForm').addEventListener('submit', async function(
   alertBox.style.display = 'none';
 
   try {
-    const res = await fetch("http://127.0.0.1:3000/api/auth/forgot-password", {
+    const API_BASE = window.location.origin + "/api";
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })

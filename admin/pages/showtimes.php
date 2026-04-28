@@ -359,7 +359,10 @@ async function loadShowtimes() {
             <td><strong style="color:#fff">${r.movie_title}</strong></td>
             <td style="color:var(--text-muted)">${r.show_date}</td>
             <td><span class="time-chip">${r.show_time?.slice(0,5)}</span></td>
-            <td style="color:var(--text-muted)">${r.cinema_name}</td>
+            <td style="color:var(--text-muted)">
+                ${r.cinema_name}<br>
+                <small style="font-size:11px; opacity:0.7">${r.cinema_address}</small>
+            </td>
             <td style="color:var(--text-muted)">${r.room_name}</td>
             <td style="color:#3498db;font-size:13px">${r.format_name}</td>
             <td style="color:var(--text-muted);font-size:13px">${r.language_name}</td>
@@ -438,6 +441,7 @@ async function loadTimetable() {
                 <div class="info">
                     <span><i class="fa-regular fa-clock"></i> ${r.show_time.slice(0,5)}</span>
                     <span><i class="fa-solid fa-door-open"></i> ${r.room_name}</span>
+                    <span><i class="fa-solid fa-location-dot"></i> ${r.cinema_address}</span>
                 </div>
                 <div class="fill" style="color: ${bgClass === 'bg-red' ? '#ff7675' : (bgClass === 'bg-yellow' ? '#ffeaa7' : '#55efc4')}">
                     ${r.booked_seats} / ${r.total_seats} <small>(${statusText})</small>
@@ -556,6 +560,31 @@ async function saveShowtime() {
             seat_prices,
             combo_items
         };
+
+        // FRONTEND VALIDATION: Check 3-hour gap
+        try {
+            const currentSTs = await API.get(`/showtimes/admin/all?date=${payload.show_date}&cinema_id=${payload.cinema_id}`);
+            const timeToSec = (t) => {
+                const [h, m] = t.split(':').map(Number);
+                return h * 3600 + m * 60;
+            };
+            const targetSec = timeToSec(payload.show_time);
+            
+            const conflict = currentSTs.find(st => {
+                // Trùng phòng và không phải chính suất đang sửa (nếu có)
+                if (st.room_id != payload.room_id) return false;
+                if (_editingId && st.id == _editingId) return false;
+                
+                const stSec = timeToSec(st.show_time);
+                return Math.abs(stSec - targetSec) < 10800; // 3 hours
+            });
+
+            if (conflict) {
+                warn.textContent = `⚠️ Khoảng cách với suất chiếu "${conflict.movie_title}" (${conflict.show_time.slice(0,5)}) tại phòng này không đủ 3 tiếng. Vui lòng chọn giờ khác.`;
+                warn.style.display = "block";
+                return;
+            }
+        } catch(e) { console.warn("Skip pre-check:", e); }
 
         if (_editingId) {
             await API.put(`/showtimes/admin/${_editingId}`, payload);

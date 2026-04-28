@@ -204,6 +204,26 @@ document.getElementById('refreshCaptchaReg').addEventListener('click',()=>{
   generateCaptcha();
 });
 
+/* ===== INPUT RESTRICTIONS & INITIALIZATION ===== */
+document.addEventListener("DOMContentLoaded", () => {
+  const phoneInput = document.querySelector('input[name="phone"]');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function() {
+      this.value = this.value.replace(/[^\d+]/g, '');
+    });
+  }
+
+  const birthdayInput = document.querySelector('input[name="birthday"]');
+  if (birthdayInput) {
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() - 16);
+    const yyyy = maxDate.getFullYear();
+    const mm = String(maxDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(maxDate.getDate()).padStart(2, '0');
+    birthdayInput.max = `${yyyy}-${mm}-${dd}`;
+  }
+});
+
 /* ===== SUBMIT ===== */
 document.getElementById("registerForm").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -227,8 +247,39 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 
   const data = Object.fromEntries(new FormData(this));
 
+  // Phone Validation
+  const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+  if (!phoneRegex.test(data.phone)) {
+    const err = document.getElementById('error');
+    err.style.display = 'block';
+    err.innerText = '❌ Số điện thoại không hợp lệ (Bắt đầu bằng 0 hoặc +84, theo sau bởi 3, 5, 7, 8, 9 và 8 chữ số tiếp theo).';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký ngay';
+    return;
+  }
+
+  // Age Validation (Min 16)
+  if (data.birthday) {
+    const birthDate = new Date(data.birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    if (age < 16) {
+      const err = document.getElementById('error');
+      err.style.display = 'block';
+      err.innerText = '❌ Bạn phải từ 16 tuổi trở lên mới được đăng ký thành viên.';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký ngay';
+      return;
+    }
+  }
+
   try {
-    const res = await fetch("http://127.0.0.1:3000/api/auth/register", {
+    const API_BASE = window.location.origin + "/api";
+    const res = await fetch(`${API_BASE}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)

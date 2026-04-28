@@ -281,13 +281,9 @@
                             <span id="bank-status-text">⏳ Đang chờ chuyển khoản...</span>
                         </div>
 
-                        <div style="margin-top:12px">
-                            <button class="btn-simulate" id="btn-simulate" onclick="simulatePayment()">
-                                🧪 [Dev] Giả lập nhận tiền
-                            </button>
                         </div>
                     </div>
-                </div>
+                
 
                 <!-- VNPAY PANEL -->
                 <div id="vnpay-panel" class="method-panel" style="display:none">

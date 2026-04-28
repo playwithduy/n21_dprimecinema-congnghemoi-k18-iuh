@@ -61,7 +61,12 @@ CREATE TABLE `users` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `avatar` varchar(255) DEFAULT NULL,
   `reset_token` varchar(255) DEFAULT NULL,
-  `reset_token_expiry` datetime DEFAULT NULL
+  `reset_token_expiry` datetime DEFAULT NULL,
+  `reward_points` int(11) DEFAULT 0,
+  `total_spending` decimal(15,2) DEFAULT 0.00,
+  `membership_rank` varchar(50) DEFAULT 'Đồng',
+  `first_transaction_date` datetime DEFAULT NULL,
+  `last_transaction_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

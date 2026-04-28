@@ -5,36 +5,34 @@ const UrlHelper = {
     /**
      * Encode a page and slug into the new /v/ format
      */
-    encode: function(page, slug, params = {}) {
+    encode: function (page, slug, params = {}) {
         const cleanSlug = this.slugify(slug);
-        
+
         const data = { p: page, ...params };
         const json = JSON.stringify(data);
-        
+
         // Base64 encoding
         let encoded = btoa(unescape(encodeURIComponent(json)));
-        
+
         // URL safe replacements (matching PHP)
         encoded = encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-        
+
         // The path should be relative to the application root
         // If your app is in a subdirectory, adjust here
         const baseUrl = window.location.origin + "/";
         return baseUrl + `v/${cleanSlug}--${encoded}`;
     },
-    
+
     /**
      * Get full URL for an asset, ensuring it points to the API Gateway
      */
-    getAssetUrl: function(path) {
+    getAssetUrl: function (path) {
         if (!path) return "";
         if (path.startsWith('http')) return path;
-        
-        // Nếu là localhost thì dùng port 3000, nếu là domain/ngrok thì dùng /api qua Nginx
-        const gateway = window.location.hostname === 'localhost' 
-            ? window.location.protocol + "//" + window.location.hostname + ":3000"
-            : window.location.origin + "/api";
-            
+
+        // Dùng cùng domain hiện tại
+        const gateway = window.location.origin;
+
         const normalizedPath = path.startsWith('/') ? path : '/' + path;
         return gateway + normalizedPath;
     },
@@ -42,7 +40,7 @@ const UrlHelper = {
     /**
      * Helper to create SEO slugs (mirroring PHP logic)
      */
-    slugify: function(text) {
+    slugify: function (text) {
         if (!text) return 'n-a';
         return text.toString().toLowerCase()
             .replace(/\s+/g, '-')           // Replace spaces with -

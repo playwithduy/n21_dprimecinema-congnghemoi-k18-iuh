@@ -11,6 +11,7 @@ const {
     simulateBankReceived,
     getMyTickets,
     cancelPayment,
+    sepayWebhook,
 } = require("../controllers/payment.controller");
 
 
@@ -30,4 +31,5 @@ module.exports = (app) => {
 
     app.post("/payment/cancel/:booking_code",  cancelPayment);
 
+    app.post("/payment/sepay-webhook",         sepayWebhook);
 };

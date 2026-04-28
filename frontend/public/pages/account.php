@@ -36,9 +36,9 @@
                     <h3>Xin chào <span id="fullname">Khách hàng</span>,</h3>
                     <p>Với trang này, bạn sẽ quản lý được tất cả thông tin tài khoản của mình.</p>
                     <div class="member-box">
-                        <div><strong>Cấp độ thẻ</strong><p class="member">MEMBER</p></div>
-                        <div><strong>Tổng chi tiêu</strong><p>0 đ</p></div>
-                        <div><strong>Điểm</strong><p>0 P</p></div>
+                        <div><strong>Cấp độ thẻ</strong><p class="member" id="info-rank">MEMBER</p></div>
+                        <div><strong>Tổng chi tiêu</strong><p id="info-total-spending">0 đ</p></div>
+                        <div><strong>Điểm D-Points</strong><p id="info-reward-points">0 P</p></div>
                     </div>
                 </div>
             </div>
@@ -121,6 +121,97 @@
                     <button type="submit" class="btn-save">LƯU THÔNG TIN</button>
                 </div>
             </form>
+        </div>
+
+        <!-- 3. ĐIỂM THƯỞNG -->
+        <div id="section-points" class="tab-content" style="display: none;">
+            <h2 class="title">ĐIỂM THƯỞNG D-POINTS</h2>
+            
+            <div class="points-overview-card glass-form">
+                <div class="points-main">
+                    <i class="fa-solid fa-coins"></i>
+                    <div class="points-val">
+                        <span id="display-points-large">0</span>
+                        <small>ĐIỂM HIỆN CÓ</small>
+                    </div>
+                </div>
+                <div class="points-rule-box">
+                    <h4><i class="fa-solid fa-circle-info"></i> QUY TẮC TÍCH ĐIỂM</h4>
+                    <p>Cứ mỗi <b>100.000 đ</b> chi tiêu thanh toán vé hoặc bắp nước, bạn sẽ nhận được <b>1 điểm thưởng (P)</b>.</p>
+                    <div class="next-point-progress">
+                        <div class="progress-info">
+                            <span>Tiến độ điểm tiếp theo</span>
+                            <span id="next-point-val">0 / 100.000 đ</span>
+                        </div>
+                        <div class="progress-bar-bg small">
+                            <div id="next-point-fill" class="progress-bar-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="points-history" style="margin-top: 30px;">
+                <h3 class="form-subtitle">LỊCH SỬ TÍCH ĐIỂM</h3>
+                <div class="table-container">
+                    <table class="account-table">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Giao dịch</th>
+                                <th>Số tiền</th>
+                                <th>Điểm cộng</th>
+                            </tr>
+                        </thead>
+                        <tbody id="points-history-body">
+                            <tr>
+                                <td colspan="4" style="text-align:center; padding: 30px; color:rgba(255,255,255,0.3);">
+                                    Chưa có lịch sử tích điểm.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. THẺ THÀNH VIÊN -->
+        <div id="section-membership" class="tab-content" style="display: none;">
+            <h2 class="title">THẺ THÀNH VIÊN</h2>
+            <div class="membership-card-display">
+                <!-- Card logic will be rendered by JS -->
+                <div id="membership-card-container">
+                    <div class="loading-cell">Đang tải thông tin thẻ...</div>
+                </div>
+            </div>
+            
+            <div class="membership-rules glass-form" style="margin-top: 30px;">
+                <h3>QUY TẮC HẠNG THẺ D-PRIME</h3>
+                <div class="rules-grid">
+                    <div class="rule-item">
+                        <span class="rank-name rank-dong">ĐỒNG</span>
+                        <p>Hạng khởi đầu. Tích luỹ chi tiêu để lên hạng.</p>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rank-name rank-bac">BẠC</span>
+                        <p>Chi tiêu từ 500k. Giảm 10% giá vé.</p>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rank-name rank-vang">VÀNG</span>
+                        <p>Chi tiêu từ 2M. Giảm 20% giá vé.</p>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rank-name rank-kimcuong">KIM CƯƠNG</span>
+                        <p>Chi tiêu từ 10M. Giảm 30% giá vé.</p>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rank-name rank-ruby">RUBY</span>
+                        <p>Chi tiêu từ 20M. Giảm 50% giá vé.</p>
+                    </div>
+                </div>
+                <p style="margin-top:20px; font-size:13px; color:rgba(255,255,255,0.6); font-style:italic;">
+                    * Lưu ý: Nếu trong vòng 6 tháng không phát sinh giao dịch mới, hạng thẻ sẽ được đưa về mức Bạc.
+                </p>
+            </div>
         </div>
 
         <!-- 3. MẬT MÃ THANH TOÁN -->

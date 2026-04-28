@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     const newsGrid = document.getElementById("news-grid");
     const tabs = document.querySelectorAll(".tab-btn");
-    const NEWS_API = window.location.protocol + "//" + window.location.hostname + ":3000/api/blog"; // Routes through API Gateway
+    const API_BASE = window.location.origin + "/api";
+    const NEWS_API = `${API_BASE}/blog`; // Routes through API Gateway
 
     let currentCategory = "Tin tức";
 

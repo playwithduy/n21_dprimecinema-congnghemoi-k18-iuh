@@ -1,0 +1,477 @@
+.shop-container {
+    padding-bottom: 80px;
+    background: #161a2b;
+    color: #fff;
+    min-height: 100vh;
+}
+
+.shop-header {
+    background: linear-gradient(135deg, #161a2b 0%, #1c2133 100%);
+    padding: 60px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.shop-header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(229,9,20,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.shop-header h1 {
+    font-size: 42px;
+    font-weight: 900;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+
+.shop-header .highlight {
+    color: #e50914;
+}
+
+.shop-header p {
+    color: #94a3b8;
+    font-size: 18px;
+    max-width: 600px;
+}
+
+.user-points-card {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    padding: 25px 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.points-info .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.points-value {
+    font-size: 32px;
+    font-weight: 900;
+    color: #f1c40f;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.points-value small {
+    font-size: 16px;
+    color: #94a3b8;
+}
+
+.user-info-mini {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid rgba(255,255,255,0.1);
+    padding-left: 30px;
+}
+
+.user-info-mini #shop-user-name {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.user-info-mini .badge {
+    background: #e50914;
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 4px;
+    width: fit-content;
+    margin-top: 5px;
+}
+
+/* Filters */
+.shop-filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.filter-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 10px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.filter-btn:hover, .filter-btn.active {
+    background: #e50914;
+    border-color: #e50914;
+    box-shadow: 0 5px 15px rgba(229,9,20,0.3);
+}
+
+/* Shop Grid */
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.shop-item {
+    background: #1c2133;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: 0.3s;
+    position: relative;
+}
+
+.shop-item:hover {
+    transform: translateY(-10px);
+    border-color: rgba(229,9,20,0.3);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.item-img {
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+}
+
+.item-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.5s;
+}
+
+.shop-item:hover .item-img img {
+    transform: scale(1.1);
+}
+
+.item-category {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.item-content {
+    padding: 20px;
+}
+
+.item-content h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.item-content p {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 20px;
+    height: 40px;
+    overflow: hidden;
+}
+
+.item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-price {
+    color: #f1c40f;
+    font-weight: 900;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-exchange {
+    background: #e50914;
+    border: none;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 13px;
+    transition: 0.3s;
+}
+
+.btn-exchange:hover {
+    background: #ff2d2d;
+}
+
+.btn-exchange:disabled {
+    background: #4b5563;
+    cursor: not-allowed;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #1c2133;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+    animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 30px;
+    text-align: center;
+}
+
+.modal-body i {
+    font-size: 50px;
+    color: #f1c40f;
+    margin-bottom: 20px;
+}
+
+.modal-footer {
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    gap: 15px;
+}
+
+.modal-footer button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-cancel {
+    background: #4b5563;
+    color: #fff;
+}
+
+.btn-confirm {
+    background: #e50914;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .user-points-card {
+        position: static;
+        transform: none;
+        margin-top: 30px;
+        width: fit-content;
+    }
+    
+    .shop-header h1 {
+        font-size: 32px;
+    }
+}
+
+/* ============================================================
+   MULTI-STEP EXCHANGE FORM
+   ============================================================ */
+
+.exchange-step {
+    display: none;
+    text-align: left;
+    animation: fadeIn 0.3s ease;
+}
+
+.exchange-step.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-body-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.modal-body-header i {
+    font-size: 40px;
+    color: #f1c40f;
+    margin-bottom: 10px;
+}
+
+/* Delivery Options */
+.delivery-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.delivery-opt {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.delivery-opt i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+    color: #94a3b8;
+}
+
+.delivery-opt span {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.delivery-opt:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.delivery-opt.active {
+    background: rgba(229,9,20,0.1);
+    border-color: #e50914;
+}
+
+.delivery-opt.active i {
+    color: #e50914;
+}
+
+/* Forms */
+.exchange-form {
+    margin-top: 20px;
+}
+
+.form-row {
+    margin-bottom: 15px;
+}
+
+.form-row label {
+    display: block;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.form-row input, .form-row select {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.form-row input:focus {
+    border-color: #e50914;
+    outline: none;
+}
+
+/* PIN Input */
+.pin-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.pin-digit {
+    width: 40px;
+    height: 50px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 900;
+    background: rgba(0,0,0,0.3);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #fff;
+}
+
+.pin-digit:focus {
+    border-color: #e50914;
+    outline: none;
+}
+
+/* Success / QR */
+.success-screen {
+    text-align: center;
+    padding: 10px 0;
+}
+
+.qr-placeholder {
+    width: 180px;
+    height: 180px;
+    background: #fff;
+    margin: 20px auto;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.qr-placeholder img {
+    width: 100%;
+    height: 100%;
+}
+
+.success-icon {
+    font-size: 60px;
+    color: #2ecc71;
+    margin-bottom: 15px;
+}

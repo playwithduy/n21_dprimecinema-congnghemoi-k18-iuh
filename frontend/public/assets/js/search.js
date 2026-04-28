@@ -1,67 +1,71 @@
-const input     = document.getElementById("searchMovie");
-const resultBox = document.getElementById("searchResult");
-const API = window.location.protocol + "//" + window.location.hostname + ":3000/api/movies";
+(() => {
+  const input     = document.getElementById("searchMovie");
+  const resultBox = document.getElementById("searchResult");
+  const API_BASE = window.location.origin + "/api";
+  const API = `${API_BASE}/movies`;
 
-if (input) {
+  if (input) {
 
-  let debounceTimer;
+    let debounceTimer;
 
-  input.addEventListener("keyup", function() {
-    const keyword = this.value.trim();
+    input.addEventListener("keyup", function() {
+      const keyword = this.value.trim();
 
-    clearTimeout(debounceTimer);
+      clearTimeout(debounceTimer);
 
-    if (keyword.length < 1) {
-      resultBox.style.display = "none";
-      return;
-    }
+      if (keyword.length < 1) {
+        resultBox.style.display = "none";
+        return;
+      }
 
-    debounceTimer = setTimeout(() => {
+      debounceTimer = setTimeout(() => {
 
-      fetch(`${API}/search?keyword=${encodeURIComponent(keyword)}`)
-        .then(res => res.json())
-        .then(data => {
+        fetch(`${API}/search?keyword=${encodeURIComponent(keyword)}`)
+          .then(res => res.json())
+          .then(data => {
 
-          if (!data.length) {
-            resultBox.innerHTML = `
-              <div class="search-empty">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                Không tìm thấy "<b>${keyword}</b>"
-              </div>`;
-            resultBox.style.display = "block";
-            return;
-          }
+            if (!data.length) {
+              resultBox.innerHTML = `
+                <div class="search-empty">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  Không tìm thấy "<b>${keyword}</b>"
+                </div>`;
+              resultBox.style.display = "block";
+              return;
+            }
 
-          resultBox.innerHTML = data.map(movie => `
-            <div class="search-item" onclick="goMovie('${movie.slug}')">
-              <img src="${movie.poster}" alt="${movie.title}"
-                   onerror="this.style.display='none'">
-              <div class="search-item-info">
-                <span class="search-item-title">${movie.title}</span>
+            resultBox.innerHTML = data.map(movie => `
+              <div class="search-item" onclick="goMovie('${movie.slug}')">
+                <img src="${movie.poster}" alt="${movie.title}"
+                     onerror="this.style.display='none'">
+                <div class="search-item-info">
+                  <span class="search-item-title">${movie.title}</span>
+                </div>
               </div>
-            </div>
-          `).join("");
+            `).join("");
 
-          resultBox.style.display = "block";
+            resultBox.style.display = "block";
 
-        })
-        .catch(() => {
-          resultBox.innerHTML = `<div class="search-empty">Lỗi tìm kiếm</div>`;
-          resultBox.style.display = "block";
-        });
+          })
+          .catch(() => {
+            resultBox.innerHTML = `<div class="search-empty">Lỗi tìm kiếm</div>`;
+            resultBox.style.display = "block";
+          });
 
-    }, 250);
-  });
+      }, 250);
+    });
 
-}
-
-function goMovie(slug) {
-  window.location.href = window.encodeLink("movie", slug);
-}
-
-
-document.addEventListener("click", function(e) {
-  if (!e.target.closest(".topbar-search")) {
-    resultBox.style.display = "none";
   }
-});
+
+  function goMovie(slug) {
+    window.location.href = window.encodeLink("movie", slug);
+  }
+
+  window.goMovie = goMovie;
+
+  document.addEventListener("click", function(e) {
+    if (resultBox && !e.target.closest(".topbar-search")) {
+      resultBox.style.display = "none";
+    }
+  });
+})();

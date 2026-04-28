@@ -210,8 +210,17 @@ justify-content:space-between;
 
 /* ================= LOGO ================= */
 
-.logo img{
-height:115%;
+/* ================= LOGO ================= */
+
+.logo img {
+  height: 85px; /* Kích thước tối ưu cho sự nổi bật */
+  width: auto;
+  filter: drop-shadow(0 0 10px rgba(229, 9, 20, 0.3));
+  transition: all 0.3s ease;
+}
+
+.logo img:hover {
+  transform: scale(1.05);
 }
 
 

@@ -1,55 +1,172 @@
-/* auth.js — chỉ export helper, KHÔNG tự đăng ký submit listener */
+(() => {
+  const API_BASE = window.location.origin + "/api";
 
-/**
- * Gọi từ login.php SAU KHI validate CAPTCHA thành công.
- * Trả về true nếu login OK, throw Error nếu thất bại.
- */
-async function doLogin() {
-  const login      = document.getElementById("loginInput").value.trim();
-  const password   = document.getElementById("password").value.trim();
-  const login_type = document.getElementById("loginType").value;
-  const errorBox   = document.getElementById("error");
+  async function doLogin() {
 
-  errorBox.style.display = "none";
+    const login =
+      document.getElementById("loginInput").value.trim();
 
-  const res  = await fetch(window.location.protocol + "//" + window.location.hostname + ":3000/api/auth/login", {
-    method : "POST",
-    headers: { "Content-Type": "application/json" },
-    body   : JSON.stringify({ login, login_type, password })
-  });
+    const password =
+      document.getElementById("password").value.trim();
 
-  const data = await res.json();
+    const login_type =
+      document.getElementById("loginType").value;
 
-  if (!res.ok) {
-    const msg = data.message || "Đăng nhập thất bại";
-    throw new Error(msg);
+    const errorBox =
+      document.getElementById("error");
+
+    try {
+
+      errorBox.style.display = "none";
+      errorBox.innerText = "";
+
+      const submitBtn =
+        document.querySelector("button[type='submit']");
+
+      if (submitBtn) {
+
+        submitBtn.disabled = true;
+
+        submitBtn.innerHTML =
+          `<i class="fa fa-spinner fa-spin"></i> ĐANG XỬ LÝ...`;
+      }
+
+      const res = await fetch(
+        `${API_BASE}/auth/login`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            login,
+            login_type,
+            password
+          })
+        }
+      );
+
+      let data = {};
+
+      try {
+
+        data = await res.json();
+
+      } catch (e) {
+
+        throw new Error(
+          "API trả dữ liệu không hợp lệ"
+        );
+      }
+
+      if (!res.ok) {
+
+        throw new Error(
+          data.message || "Đăng nhập thất bại"
+        );
+      }
+
+      /* SAVE TOKEN */
+
+      localStorage.setItem(
+        "token",
+        data.token
+      );
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(data.user)
+      );
+
+      /* NOTIFICATION */
+
+      const notifyKey =
+        "app_notifications";
+
+      const existing =
+        JSON.parse(
+          localStorage.getItem(notifyKey) || "[]"
+        );
+
+      existing.unshift({
+
+        id: Date.now(),
+
+        message:
+          `Chào mừng ${data.user.fullname}! 🎉`,
+
+        type: "success",
+
+        read: false,
+
+        time: new Date().toLocaleString("vi-VN")
+      });
+
+      localStorage.setItem(
+        notifyKey,
+        JSON.stringify(existing.slice(0, 20))
+      );
+
+      /* REDIRECT */
+
+      const params =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      const redirect =
+        params.get("redirect");
+
+      const showtimeId =
+        params.get("showtime_id");
+
+      if (redirect === "booking-seat") {
+
+        window.location.href =
+          `index.php?p=Ym9va2luZy1zZWF0` +
+          (showtimeId
+            ? `&showtime_id=${showtimeId}`
+            : "");
+
+        return true;
+      }
+
+      window.location.href =
+        "index.php?p=YWNjb3VudA==";
+
+      return true;
+
+    } catch (err) {
+
+      console.error(
+        "LOGIN ERROR:",
+        err
+      );
+
+      errorBox.style.display =
+        "block";
+
+      errorBox.innerText =
+        err.message;
+
+      return false;
+
+    } finally {
+
+      const submitBtn =
+        document.querySelector("button[type='submit']");
+
+      if (submitBtn) {
+
+        submitBtn.disabled = false;
+
+        submitBtn.innerHTML =
+          "ĐĂNG NHẬP";
+      }
+    }
   }
 
-  /* Lưu token & user */
-  localStorage.setItem("token", data.token);
-  localStorage.setItem("user",  JSON.stringify(data.user));
-
-  /* Thêm thông báo chào mừng */
-  const notifyKey = "app_notifications";
-  const existing  = JSON.parse(localStorage.getItem(notifyKey) || "[]");
-  existing.unshift({
-    id     : Date.now(),
-    message: `Chào mừng ${data.user.fullname}! Đăng nhập thành công 🎉`,
-    type   : "success",
-    read   : false,
-    time   : new Date().toLocaleString("vi-VN")
-  });
-  localStorage.setItem(notifyKey, JSON.stringify(existing.slice(0, 20)));
-
-  /* Redirect */
-  const params      = new URLSearchParams(window.location.search);
-  const redirect    = params.get("redirect");
-  const showtimeId  = params.get("showtime_id");
-
-  if (redirect === "booking-seat") {
-    window.location.href = `index.php?p=Ym9va2luZy1zZWF0${showtimeId ? "&showtime_id=" + showtimeId : ""}`;
-    return;
-  }
-
-  window.location.href = "index.php?p=YWNjb3VudA==";
-}
+  window.doLogin = doLogin;
+})();

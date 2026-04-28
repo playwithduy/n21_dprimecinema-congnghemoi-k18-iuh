@@ -1,4 +1,17 @@
-const FORUM_API = window.location.protocol + "//" + window.location.hostname + ":3000/api/forum";
+(() => {
+const API_BASE = window.location.origin + "/api";
+const FORUM_API = `${API_BASE}/forum`;
+
+let movies = [];
+let user = JSON.parse(localStorage.getItem("user") || "null");
+let token = localStorage.getItem("token");
+let editingPostId = null;
+let currentFilter = { movie_id: null, search: "" };
+
+// PAGINATION state
+let currentPage = 1;
+const postsLimit = 10;
+let hasMore = true;
 
 document.addEventListener("DOMContentLoaded", () => {
   const forumFeed = document.getElementById("forum-feed");
@@ -15,14 +28,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const filterText = document.getElementById("filter-text");
   const clearFilterBtn = document.getElementById("clear-filter");
   
-  let movies = [];
-  let user = JSON.parse(localStorage.getItem("user") || "null");
-  let token = localStorage.getItem("token");
-  let editingPostId = null;
-  let currentFilter = { movie_id: null, search: "" };
-
   // Initial load
-  if (forumFeed) loadPosts();
+  if (forumFeed) {
+      loadPosts(true); 
+      
+      // Add Load More button to DOM if not exists
+      if (!document.getElementById("load-more-container")) {
+          const loadMoreHtml = `
+            <div id="load-more-container" style="text-align: center; margin: 20px 0;">
+                <button id="btn-load-more" class="sidebar-tag" style="cursor:pointer; border:1px solid var(--forum-primary); color:var(--forum-primary); padding:8px 30px; background:transparent;">
+                    <i class="fa-solid fa-arrow-down"></i> Xem thêm bài viết
+                </button>
+            </div>
+          `;
+          forumFeed.after(document.createRange().createContextualFragment(loadMoreHtml));
+          document.getElementById("btn-load-more").onclick = () => {
+              currentPage++;
+              loadPosts(false);
+          };
+      }
+  }
   if (movieSelect) loadMovies();
 
   // --- MODAL LOGIC ---
@@ -113,21 +138,121 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- LOAD & FILTER POSTS ---
-  async function loadPosts() {
-    forumFeed.innerHTML = `<div class="loading-spinner">${t('Đang tải...') || 'Đang tải bảng tin...'}</div>`;
+  async function loadPosts(reset = true) {
+    if (reset) {
+        currentPage = 1;
+        hasMore = true;
+        forumFeed.innerHTML = `<div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải bảng tin...</div>`;
+        if (document.getElementById("load-more-container")) document.getElementById("load-more-container").style.display = "none";
+    }
+    
+    const loadBtn = document.getElementById("btn-load-more");
+    if (loadBtn) loadBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải...`;
+
     try {
-      let url = `${FORUM_API}/posts?`;
+      let url = `${FORUM_API}/posts?page=${currentPage}&limit=${postsLimit}&`;
       if (currentFilter.movie_id) url += `movie_id=${currentFilter.movie_id}&`;
       if (currentFilter.search) url += `search=${encodeURIComponent(currentFilter.search)}&`;
 
       const res = await fetch(url, {
         headers: { "Authorization": `Bearer ${token}` }
       });
+      
+      if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || `Lỗi hệ thống (${res.status})`);
+      }
+      
       const data = await res.json();
-      renderPosts(data.posts);
+      
+      if (reset) {
+          renderPosts(data.posts);
+      } else {
+          appendPosts(data.posts);
+      }
+
+      // Check if we should show Load More
+      hasMore = data.posts.length === postsLimit;
+      const loadContainer = document.getElementById("load-more-container");
+      if (loadContainer) {
+          loadContainer.style.display = hasMore ? "block" : "none";
+      }
+      if (loadBtn) loadBtn.innerHTML = `<i class="fa-solid fa-arrow-down"></i> Xem thêm bài viết`;
+
     } catch (err) {
-      forumFeed.innerHTML = '<div class="loading-spinner" style="color:#e50914;">Lỗi kết nối máy chủ.</div>';
+      console.error("FORUM LOAD ERROR:", err);
+      if (reset) {
+          forumFeed.innerHTML = `<div class="loading-spinner" style="color:#e50914;">Lỗi kết nối: ${err.message}</div>`;
+      }
     }
+  }
+
+  function appendPosts(posts) {
+      const fragment = document.createRange().createContextualFragment(posts.map(post => renderSinglePost(post)).join(""));
+      forumFeed.appendChild(fragment);
+  }
+
+  function renderPosts(posts) {
+    if (posts.length === 0) {
+      forumFeed.innerHTML = `<div class="loading-spinner">Không tìm thấy bài viết nào.</div>`;
+      return;
+    }
+    forumFeed.innerHTML = posts.map(post => renderSinglePost(post)).join("");
+  }
+
+  function renderSinglePost(post) {
+      const timeStr = formatTime(post.created_at);
+      const avatarPath = post.avatar ? (post.avatar.startsWith('/') ? post.avatar : '/' + post.avatar) : null;
+      const avatar = avatarPath 
+        ? `${API_BASE}/auth${avatarPath}` 
+        : "https://ui-avatars.com/api/?name=" + encodeURIComponent(post.username || "U") + "&background=e71a0f&color=fff";
+      const isOwner = user && parseInt(post.user_id) === parseInt(user.id);
+      
+      return `
+        <div class="forum-post" data-id="${post.id}" onclick="openThread(${post.id})">
+          <div class="post-left">
+            <img src="${avatar}" class="user-avatar" alt="${post.username}">
+            <div class="post-line"></div>
+          </div>
+          <div class="post-right">
+            <div class="post-header">
+              <div style="display:flex; align-items:center; gap:10px;">
+                <a href="#" class="post-user">${post.username}</a>
+                <span class="post-time">${timeStr}</span>
+              </div>
+              <div style="display:flex; gap:5px;">
+                ${isOwner ? `
+                  <button class="edit-btn" onclick="event.stopPropagation(); prepareEdit(${post.id})">
+                    <i class="far fa-edit"></i>
+                  </button>
+                  <button class="delete-btn" onclick="handleDelete(event, ${post.id})">
+                    <i class="far fa-trash-alt"></i>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <div class="post-title">${post.title}</div>
+            <div class="post-content">${post.content}</div>
+            
+            ${post.movie_id ? `
+              <div class="post-tag" onclick="event.stopPropagation(); handleFilter({movie_id: ${post.movie_id}, title: '${getMovieTitle({title: post.movie_title, original_title: post.original_title})}'})">
+                <i class="fas fa-ticket-alt"></i> ${getMovieTitle({title: post.movie_title, original_title: post.original_title})}
+              </div>
+            ` : ''}
+
+            <div class="post-footer">
+              <button class="footer-item like-btn ${post.liked ? 'liked' : ''}" onclick="handleLike(event, ${post.id})">
+                <i class="${post.liked ? 'fas' : 'far'} fa-heart"></i>
+                <span>${post.likes || 0}</span>
+              </button>
+              <button class="footer-item">
+                <i class="far fa-comment"></i>
+                <span>${post.comment_count || 0}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
   }
 
   window.handleFilter = (filter) => {
@@ -138,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       activeFilterContainer.style.display = "none";
     }
-    loadPosts();
+    loadPosts(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -152,72 +277,9 @@ document.addEventListener("DOMContentLoaded", () => {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {
         currentFilter.search = e.target.value;
-        loadPosts();
+        loadPosts(true);
       }, 500);
     });
-  }
-
-  function renderPosts(posts) {
-    if (posts.length === 0) {
-      forumFeed.innerHTML = `<div class="loading-spinner">${t('Không tìm thấy bài viết nào.') || 'Không tìm thấy bài viết nào.'}</div>`;
-      return;
-    }
-
-    forumFeed.innerHTML = posts.map(post => {
-      const timeStr = formatTime(post.created_at);
-      const avatarPath = post.avatar ? (post.avatar.startsWith('/') ? post.avatar : '/' + post.avatar) : null;
-      const avatar = avatarPath 
-        ? `${window.location.protocol}//${window.location.hostname}:3000/api/auth${avatarPath}` 
-        : "https://ui-avatars.com/api/?name=" + encodeURIComponent(post.username || "U") + "&background=e71a0f&color=fff";
-      // FIX: Ép kiểu INT để so sánh chính xác
-      const isOwner = user && parseInt(post.user_id) === parseInt(user.id);
-      
-      return `
-        <div class="forum-post" data-id="${post.id}">
-          <div class="post-left">
-            <img src="${avatar}" class="user-avatar" alt="${post.username}">
-            <div class="post-line"></div>
-          </div>
-          <div class="post-right">
-            <div class="post-header">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <a href="#" class="post-user">${post.username}</a>
-                <span class="post-time">${timeStr}</span>
-              </div>
-              <div style="display:flex; gap:5px;">
-                ${isOwner ? `
-                  <button class="edit-btn" onclick="prepareEdit(${post.id})">
-                    <i class="far fa-edit"></i>
-                  </button>
-                  <button class="delete-btn" onclick="handleDelete(event, ${post.id})">
-                    <i class="far fa-trash-alt"></i>
-                  </button>
-                ` : ''}
-              </div>
-            </div>
-            <div class="post-title" onclick="openThread(${post.id})">${post.title}</div>
-            <div class="post-content" onclick="openThread(${post.id})">${post.content}</div>
-            
-            ${post.movie_id ? `
-              <div class="post-tag" onclick="handleFilter({movie_id: ${post.movie_id}, title: '${getMovieTitle({title: post.movie_title, original_title: post.original_title})}'})">
-                <i class="fas fa-ticket-alt"></i> ${getMovieTitle({title: post.movie_title, original_title: post.original_title})}
-              </div>
-            ` : ''}
-
-            <div class="post-footer">
-              <button class="footer-item like-btn ${post.liked ? 'liked' : ''}" onclick="handleLike(event, ${post.id})">
-                <i class="${post.liked ? 'fas' : 'far'} fa-heart"></i>
-                <span>${post.likes || 0}</span>
-              </button>
-              <button class="footer-item" onclick="openThread(${post.id})">
-                <i class="far fa-comment"></i>
-                <span>${post.comment_count || 0}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join("");
   }
 
   // --- SUBMIT (CREATE OR UPDATE) ---
@@ -343,3 +405,4 @@ document.addEventListener("DOMContentLoaded", () => {
     return Math.floor(diff / 86400) + " " + t("ngày");
   }
 });
+})();

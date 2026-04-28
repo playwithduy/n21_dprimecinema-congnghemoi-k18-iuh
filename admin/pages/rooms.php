@@ -1,8 +1,4 @@
 <div class="page-header">
-    <div class="header-left">
-        <h2>Sơ Đồ Phòng Chiếu</h2>
-        <p class="subtitle">Quản lý rạp, phòng và cấu hình sơ đồ ghế ngồi</p>
-    </div>
     <div class="header-actions">
         <select id="cinemaSelect" class="admin-select" onchange="onCinemaChange()">
             <option value="">-- Chọn Rạp Chiếu --</option>
@@ -49,6 +45,9 @@
                     <button class="btn-upload" id="btn-upload-normal" onclick="triggerUpload('normal')" title="Tải ảnh lên">
                         <i class="fa-solid fa-image"></i>
                     </button>
+                    <button class="btn-remove" id="btn-remove-normal" onclick="removeImage('normal')" title="Gỡ ảnh">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
                     <input type="file" id="file-normal" style="display:none" accept="image/*" onchange="handleFileUpload('normal')">
                 </div>
             </div>
@@ -59,6 +58,9 @@
                     <input type="hidden" id="img-vip">
                     <button class="btn-upload" id="btn-upload-vip" onclick="triggerUpload('vip')" title="Tải ảnh lên">
                         <i class="fa-solid fa-image"></i>
+                    </button>
+                    <button class="btn-remove" id="btn-remove-vip" onclick="removeImage('vip')" title="Gỡ ảnh">
+                        <i class="fa-solid fa-trash-can"></i>
                     </button>
                     <input type="file" id="file-vip" style="display:none" accept="image/*" onchange="handleFileUpload('vip')">
                 </div>
@@ -71,6 +73,9 @@
                     <button class="btn-upload" id="btn-upload-sweetbox" onclick="triggerUpload('sweetbox')" title="Tải ảnh lên">
                         <i class="fa-solid fa-image"></i>
                     </button>
+                    <button class="btn-remove" id="btn-remove-sweetbox" onclick="removeImage('sweetbox')" title="Gỡ ảnh">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
                     <input type="file" id="file-sweetbox" style="display:none" accept="image/*" onchange="handleFileUpload('sweetbox')">
                 </div>
             </div>
@@ -81,6 +86,9 @@
                     <input type="hidden" id="img-sold">
                     <button class="btn-upload" id="btn-upload-sold" onclick="triggerUpload('sold')" title="Tải ảnh lên">
                         <i class="fa-solid fa-image"></i>
+                    </button>
+                    <button class="btn-remove" id="btn-remove-sold" onclick="removeImage('sold')" title="Gỡ ảnh">
+                        <i class="fa-solid fa-trash-can"></i>
                     </button>
                     <input type="file" id="file-sold" style="display:none" accept="image/*" onchange="handleFileUpload('sold')">
                 </div>
@@ -152,11 +160,11 @@
     .seat-legend-premium { display: flex; justify-content: center; gap: 30px; margin-bottom: 40px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 12px; }
     .seat-preview { width: 24px; height: 24px; border-radius: 6px; border: 2px solid transparent; display: inline-block; position: relative; background-size: cover; background-position: center; }
     
-    .seat-preview.normal { background-color: var(--seat-normal); border-color: var(--border-normal); }
-    .seat-preview.vip { background-color: var(--seat-vip); border-color: var(--border-vip); box-shadow: 0 0 8px rgba(229, 9, 20, 0.4); }
-    .seat-preview.sweetbox { background-color: var(--seat-sweetbox); border-color: var(--border-sweetbox); box-shadow: 0 0 8px rgba(224, 86, 253, 0.4); }
+    .seat-preview.normal { background-color: var(--seat-normal); border-color: var(--border-normal); background-image: var(--img-normal); }
+    .seat-preview.vip { background-color: var(--seat-vip); border-color: var(--border-vip); background-image: var(--img-vip); box-shadow: 0 0 8px rgba(229, 9, 20, 0.4); }
+    .seat-preview.sweetbox { background-color: var(--seat-sweetbox); border-color: var(--border-sweetbox); background-image: var(--img-sweetbox); box-shadow: 0 0 8px rgba(224, 86, 253, 0.4); }
     .seat-preview.selected { background-color: var(--seat-selected); border-color: #fff; box-shadow: 0 0 12px var(--seat-selected); }
-    .seat-preview.sold { background-color: var(--seat-sold); border-color: var(--border-sold); background-size: cover; background-position: center; background-image: var(--img-sold); }
+    .seat-preview.sold { background-color: var(--seat-sold); border-color: var(--border-sold); background-image: var(--img-sold); }
     .seat-preview.central { border: 2px dashed #2ecc71; background: rgba(46, 204, 113, 0.2); }
 
     .seat.is-central { background: rgba(46, 204, 113, 0.1) !important; }
@@ -195,6 +203,21 @@
     .btn-upload:hover { border-color: var(--primary); color: var(--primary); }
     .btn-upload.success { border-color: #2ecc71; color: #2ecc71; }
     
+    .btn-remove {
+        width: 32px;
+        height: 32px;
+        background: rgba(231, 76, 60, 0.1);
+        border: 1px solid rgba(231, 76, 60, 0.3);
+        color: #e74c3c;
+        border-radius: 4px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+    }
+    .btn-remove:hover { background: #e74c3c; color: #fff; }
+    
     .hint { font-size: 10px; color: var(--text-muted); font-style: italic; margin-top: 10px; }
 
     .seat { 
@@ -207,10 +230,13 @@
         border-radius: 4px;
         user-select: none;
         background-clip: padding-box;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }
-    .seat.normal { background-color: var(--seat-normal); border-color: var(--border-normal); }
-    .seat.vip { background-color: var(--seat-vip); border-color: var(--border-vip); }
-    .seat.sweetbox { background-color: var(--seat-sweetbox); border-color: var(--border-sweetbox); width: 58px; }
+    .seat.normal { background-color: var(--seat-normal); border-color: var(--border-normal); background-image: var(--img-normal); }
+    .seat.vip { background-color: var(--seat-vip); border-color: var(--border-vip); background-image: var(--img-vip); }
+    .seat.sweetbox { background-color: var(--seat-sweetbox); border-color: var(--border-sweetbox); background-image: var(--img-sweetbox); width: 58px; }
     .seat.broken { background-color: var(--seat-sold); border-color: #333; opacity: 0.3; cursor: not-allowed; position: relative; }
     .seat.broken::after { content: '✕'; position: absolute; font-size: 10px; color: #ff4757; }
     
@@ -250,6 +276,9 @@
     .room-card { background: var(--bg-darker); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; cursor: pointer; position: relative; transition: 0.2s; }
     .room-card:hover { border-color: var(--primary); }
     .room-card.active { border-color: var(--primary); background: rgba(229, 9, 20, 0.05); box-shadow: inset 0 0 10px rgba(229, 9, 20, 0.1); }
+    .room-card.showtime-target { border-color: #2ecc71; border-style: dashed; }
+    .room-card.showtime-target.active { border-style: solid; border-width: 2px; }
+    .showtime-badge { position: absolute; top: -10px; right: 10px; background: #2ecc71; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; z-index: 10; }
     .room-card h4 { font-size: 14px; margin-bottom: 5px; color: #fff; }
     .room-card p { font-size: 11px; color: var(--text-muted); }
     .delete-room-btn { position: absolute; top: 10px; right: 10px; color: var(--text-muted); font-size: 12px; opacity: 0; transition: 0.2s; }
@@ -285,7 +314,7 @@ function toggleStyleEditor() {
     editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
 }
 
-function updateTheme() {
+function updateTheme(save = true) {
     const root = document.documentElement;
     const colors = {
         normal: document.getElementById('color-normal').value,
@@ -305,17 +334,44 @@ function updateTheme() {
     root.style.setProperty('--seat-sweetbox', colors.sweetbox);
     root.style.setProperty('--seat-sold', colors.sold);
     
-    root.style.setProperty('--img-normal', images.normal ? `url('${window.APP_CONFIG.API_BASE}/${images.normal}')` : 'none');
-    root.style.setProperty('--img-vip', images.vip ? `url('${window.APP_CONFIG.API_BASE}/${images.vip}')` : 'none');
-    root.style.setProperty('--img-sweetbox', images.sweetbox ? `url('${window.APP_CONFIG.API_BASE}/${images.sweetbox}')` : 'none');
-    root.style.setProperty('--img-sold', images.sold ? `url('${window.APP_CONFIG.API_BASE}/${images.sold}')` : 'none');
+    root.style.setProperty('--img-normal', images.normal ? `url('${API.getAssetUrl(images.normal)}')` : 'none');
+    root.style.setProperty('--img-vip', images.vip ? `url('${API.getAssetUrl(images.vip)}')` : 'none');
+    root.style.setProperty('--img-sweetbox', images.sweetbox ? `url('${API.getAssetUrl(images.sweetbox)}')` : 'none');
+    root.style.setProperty('--img-sold', images.sold ? `url('${API.getAssetUrl(images.sold)}')` : 'none');
 
-    // Lưu vào database nếu có suất chiếu đang chọn
+    // Lưu vào database
+    if (!save) return;
+
     const showtimeId = document.getElementById('showtimeSelect').value;
+    const movieId = document.getElementById('movieSelect').value;
+
     if (showtimeId) {
         saveShowtimeStyles(showtimeId, colors, images);
+    } else if (movieId) {
+        saveMovieStyles(movieId, colors, images);
+    } else if (currentRoomId) {
+        // Nếu không chọn suất/phim, lưu vào cấu hình MẶC ĐỊNH của phòng
+        saveRoomStyles(currentRoomId, colors, images);
     } else {
-        showToast("Giao diện đã được cập nhật tạm thời (Chưa chọn suất chiếu để lưu)");
+        showToast("Giao diện đã được cập nhật tạm thời (Chưa chọn phòng/phim/suất để lưu)");
+    }
+}
+
+async function saveMovieStyles(movieId, colors, images) {
+    try {
+        await API.patch(`/showtimes/admin/movies/${movieId}/styles`, { colors, images });
+        showToast("Đã lưu cấu hình giao diện cho PHIM này!");
+    } catch (err) {
+        showToast(err.message || "Lỗi khi lưu giao diện phim", "error");
+    }
+}
+
+async function saveRoomStyles(roomId, colors, images) {
+    try {
+        await API.patch(`/showtimes/admin/rooms/${roomId}/styles`, { colors, images });
+        showToast("Đã lưu cấu hình mặc định cho phòng!");
+    } catch (err) {
+        showToast("Lỗi khi lưu giao diện phòng", "error");
     }
 }
 
@@ -350,6 +406,9 @@ async function loadDates() {
     const select = document.getElementById('dateSelect');
     select.innerHTML = '<option value="">-- Chọn Ngày --</option>' + 
         dates.map(d => `<option value="${d.date}">${d.date}</option>`).join('');
+
+    // Load movie styles as fallback if no showtime selected yet
+    loadEffectiveStyles();
 }
 
 async function loadTimes() {
@@ -361,60 +420,169 @@ async function loadTimes() {
     document.getElementById('showtimeSelect').innerHTML = '<option value="">-- Chọn Suất --</option>';
     
     if (!cinemaId || !movieId || !date) return;
-    const times = await API.get(`/showtimes/admin/cinemas/${cinemaId}/movies/${movieId}/dates/${date}/times`);
-    const select = document.getElementById('showtimeSelect');
-    select.innerHTML = '<option value="">-- Chọn Suất --</option>' + 
-        times.map(t => `<option value="${t.id}">${t.time}</option>`).join('');
+    
+    try {
+        // 1. Nạp danh sách phòng của rạp này để làm bản đồ tra cứu (Lookup Map)
+        const rooms = await API.get(`/showtimes/admin/rooms?cinema_id=${cinemaId}`);
+        const roomMap = {};
+        if (Array.isArray(rooms)) {
+            rooms.forEach(r => {
+                roomMap[String(r.id)] = r.room_name;
+            });
+        }
+
+        // 2. Nạp danh sách suất chiếu
+        const times = await API.get(`/showtimes/admin/cinemas/${cinemaId}/movies/${movieId}/dates/${date}/times`);
+        
+        const select = document.getElementById('showtimeSelect');
+        select.innerHTML = '<option value="">-- Chọn Suất --</option>' + 
+            times.map(t => {
+                const rid = t.room_id || t.roomId;
+                // Ưu tiên: Tên từ API > Tên từ bản đồ phòng > ID phòng > Cảnh báo
+                const rName = t.room_name || roomMap[String(rid)] || (rid ? `Phòng #${rid}` : 'Chưa rõ phòng');
+                return `<option value="${t.id}" data-room-id="${rid || ''}">${t.time} (${rName})</option>`;
+            }).join('');
+
+        // 3. Tự động chọn nếu chỉ có 1 suất chiếu
+        if (times.length === 1) {
+            select.value = times[0].id;
+            onShowtimeChange();
+        }
+    } catch (e) {
+        console.error("loadTimes error:", e);
+    }
 }
 
 async function onShowtimeChange() {
-    const showtimeId = document.getElementById('showtimeSelect').value;
+    const select = document.getElementById('showtimeSelect');
+    const showtimeId = select.value;
     if (!showtimeId) {
-        // Reset styles to default
-        document.getElementById('img-normal').value = '';
-        document.getElementById('img-vip').value = '';
-        document.getElementById('img-sweetbox').value = '';
-        document.getElementById('img-sold').value = '';
-        ['normal', 'vip', 'sweetbox', 'sold'].forEach(type => {
-            document.getElementById(`btn-upload-${type}`).classList.remove('success');
-        });
-        updateTheme();
+        loadEffectiveStyles();
         return;
     }
-    const config = await API.get(`/showtimes/admin/showtimes/${showtimeId}/config`);
-    if (config && config.styles) {
-        const s = config.styles;
-        if (s.colors) {
-            document.getElementById('color-normal').value = s.colors.normal || '#2a2e3d';
-            document.getElementById('color-vip').value = s.colors.vip || '#e50914';
-            document.getElementById('color-sweetbox').value = s.colors.sweetbox || '#e056fd';
-            document.getElementById('color-sold').value = s.colors.sold || '#2d3436';
+    
+    try {
+        const showtime = await API.get(`/showtimes/admin/${showtimeId}`);
+        if (showtime) {
+            // Chỉ chuyển phòng nếu suất chiếu thuộc phòng khác
+            if (showtime.room_id != currentRoomId) {
+                await selectRoom(showtime.room_id, showtime.room_name, true);
+                // Đảm bảo sau khi load phòng, suất chiếu vẫn được chọn
+                select.value = showtimeId;
+            }
         }
-        if (s.images) {
-            document.getElementById('img-normal').value = s.images.normal || '';
-            document.getElementById('img-vip').value = s.images.vip || '';
-            document.getElementById('img-sweetbox').value = s.images.sweetbox || '';
-            document.getElementById('img-sold').value = s.images.sold || '';
-            
-            // Highlight buttons if has image
-            ['normal', 'vip', 'sweetbox', 'sold'].forEach(type => {
-                const btn = document.getElementById(`btn-upload-${type}`);
-                if (s.images[type]) btn.classList.add('success');
-                else btn.classList.remove('success');
-            });
-        }
-        updateTheme();
+        loadEffectiveStyles();
+    } catch (e) {
+        console.error("onShowtimeChange error:", e);
     }
+}
+
+async function loadEffectiveStyles() {
+    const showtimeId = document.getElementById('showtimeSelect').value;
+    const movieId = document.getElementById('movieSelect').value;
+
+    try {
+        // 1. Ưu tiên 1: Suất chiếu cụ thể
+        if (showtimeId) {
+            const config = await API.get(`/showtimes/admin/showtimes/${showtimeId}/config`);
+            if (config && config.styles && (config.styles.colors || config.styles.images)) {
+                applyStylesToUI(config.styles);
+                updateTheme(false);
+                return;
+            }
+        }
+
+        // 2. Ưu tiên 2: Phim cụ thể
+        if (movieId) {
+            const config = await API.get(`/showtimes/admin/movies/${movieId}/config`);
+            if (config && config.styles && (config.styles.colors || config.styles.images)) {
+                applyStylesToUI(config.styles);
+                updateTheme(false);
+                return;
+            }
+        }
+
+        // 3. Ưu tiên 3: Phòng chiếu (Mặc định)
+        if (currentRoomId) {
+            const roomData = await API.get(`/showtimes/admin/rooms/${currentRoomId}`);
+            if (roomData && roomData.seat_styles) {
+                const s = typeof roomData.seat_styles === 'string' ? JSON.parse(roomData.seat_styles) : roomData.seat_styles;
+                if (s && (s.colors || s.images)) {
+                    applyStylesToUI(s);
+                    updateTheme(false);
+                    return;
+                }
+            }
+        }
+
+        // 4. Mặc định hệ thống
+        resetStyles();
+    } catch (err) {
+        console.warn("loadEffectiveStyles error:", err);
+    }
+}
+
+function applyStylesToUI(s) {
+    if (s.colors) {
+        document.getElementById('color-normal').value = s.colors.normal || '#4a5568';
+        document.getElementById('color-vip').value = s.colors.vip || '#f1c40f';
+        document.getElementById('color-sweetbox').value = s.colors.sweetbox || '#e056fd';
+        document.getElementById('color-sold').value = s.colors.sold || '#2d3436';
+    }
+    if (s.images) {
+        document.getElementById('img-normal').value = s.images.normal || '';
+        document.getElementById('img-vip').value = s.images.vip || '';
+        document.getElementById('img-sweetbox').value = s.images.sweetbox || '';
+        document.getElementById('img-sold').value = s.images.sold || '';
+        
+        ['normal', 'vip', 'sweetbox', 'sold'].forEach(type => {
+            const btn = document.getElementById(`btn-upload-${type}`);
+            const removeBtn = document.getElementById(`btn-remove-${type}`);
+            if (s.images[type]) {
+                btn.classList.add('success');
+                removeBtn.style.display = 'flex';
+            } else {
+                btn.classList.remove('success');
+                removeBtn.style.display = 'none';
+            }
+        });
+    }
+}
+
+function resetStyles() {
+    document.getElementById('img-normal').value = '';
+    document.getElementById('img-vip').value = '';
+    document.getElementById('img-sweetbox').value = '';
+    document.getElementById('img-sold').value = '';
+    
+    // Reset color pickers to defaults
+    document.getElementById('color-normal').value = '#4a5568';
+    document.getElementById('color-vip').value = '#f1c40f';
+    document.getElementById('color-sweetbox').value = '#e056fd';
+    document.getElementById('color-sold').value = '#2d3436';
+
+    ['normal', 'vip', 'sweetbox', 'sold'].forEach(type => {
+        const btn = document.getElementById(`btn-upload-${type}`);
+        const removeBtn = document.getElementById(`btn-remove-${type}`);
+        btn.classList.remove('success');
+        btn.innerHTML = '<i class="fa-solid fa-image"></i>';
+        if (removeBtn) removeBtn.style.display = 'none';
+    });
+    updateTheme(false);
 }
 
 async function initPage() {
     try {
         const cinemas = await API.get('/showtimes/cinemas');
         const select = document.getElementById('cinemaSelect');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">-- Chọn Rạp Chiếu --</option>';
         cinemas.forEach(c => {
             select.innerHTML += `<option value="${c.id}">${c.name} - ${c.address}</option>`;
         });
     } catch(e) {
+        console.error("initPage error:", e);
         showToast("Lỗi tải rạp chiếu", "error");
     }
 }
@@ -439,19 +607,30 @@ async function loadRooms() {
             list.innerHTML = '<div class="empty-state">Rạp này chưa có phòng...</div>';
             return;
         }
-        list.innerHTML = rooms.map(r => `
-            <div class="room-card" id="room-${r.id}" onclick="selectRoom(${r.id}, '${r.room_name}')">
-                <h4>${r.room_name}</h4>
-                <p>${r.total_seats} Ghế tổng cộng</p>
-                <button class="delete-room-btn" onclick="deleteRoom(${r.id}, event)"><i class="fa-solid fa-trash"></i></button>
-            </div>
-        `).join('');
+        const showtimeSelect = document.getElementById('showtimeSelect');
+        const selectedOption = showtimeSelect.selectedOptions[0];
+        const showtimeRoomId = selectedOption ? selectedOption.dataset.roomId : null;
+
+        list.innerHTML = rooms.map(r => {
+            const isShowtimeRoom = (showtimeRoomId == r.id);
+            const isActive = (currentRoomId == r.id);
+            
+            return `
+                <div class="room-card ${isActive ? 'active' : ''} ${isShowtimeRoom ? 'showtime-target' : ''}" 
+                     id="room-${r.id}" onclick="selectRoom(${r.id}, '${r.room_name}')">
+                    ${isShowtimeRoom ? '<span class="showtime-badge">Suất đang chọn</span>' : ''}
+                    <h4>${r.room_name}</h4>
+                    <p>${r.total_seats} Ghế tổng cộng</p>
+                    <button class="delete-room-btn" onclick="deleteRoom(${r.id}, event)"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `;
+        }).join('');
     } catch(e) {
         showToast("Lỗi tải danh sách phòng", "error");
     }
 }
 
-async function selectRoom(id, name) {
+async function selectRoom(id, name, isInternalCall = false) {
     currentRoomId = id;
     document.querySelectorAll('.room-card').forEach(c => c.classList.remove('active'));
     if (document.getElementById(`room-${id}`)) {
@@ -459,13 +638,29 @@ async function selectRoom(id, name) {
     }
     
     // Bỏ chữ "Phòng" để hiển thị gọn hơn
-    const displayName = name.replace(/^Phòng\s+/i, '');
+    const safeName = String(name || id);
+    const displayName = safeName.replace(/^Phòng\s+/i, '');
     document.getElementById('currentRoomName').innerText = displayName;
     document.getElementById('editRoomBtn').style.display = 'inline-block';
     document.getElementById('sidebarActions').style.display = 'block';
     document.getElementById('editorActions').style.display = 'none';
     selectedSeats.clear();
     updateSelectionUI();
+
+    // Reset showtime selection if this was a manual room click AND the room changed
+    if (!isInternalCall) {
+        const showtimeSelect = document.getElementById('showtimeSelect');
+        const selectedOption = showtimeSelect.selectedOptions[0];
+        const showtimeRoomId = selectedOption ? selectedOption.dataset.roomId : null;
+
+        if (showtimeSelect.value && showtimeRoomId == id) {
+            // Cùng phòng với suất đang chọn -> Giữ nguyên suất
+            console.log("Keeping showtime selection for room", id);
+        } else {
+            showtimeSelect.value = '';
+            resetStyles();
+        }
+    }
 
     // Reset Central Setup Mode
     isCentralSetupMode = false;
@@ -489,15 +684,35 @@ async function selectRoom(id, name) {
                 </div>
             `;
         } else {
-            const roomData = await API.get(`/showtimes/admin/rooms/${id}`);
-            roomCentralMetadata = roomData.central_metadata;
-            if (typeof roomCentralMetadata === 'string') {
-                try { roomCentralMetadata = JSON.parse(roomCentralMetadata); } catch(e) {}
-            }
             renderSeatMap(seats);
+            
+            // Tải thông tin phòng để lấy metadata vùng trung tâm
+            let roomData = null;
+            try {
+                roomData = await API.get(`/showtimes/admin/rooms/${id}`);
+            } catch(e) {
+                console.warn("Could not load room metadata:", e);
+            }
+
+            // Tải cấu hình giao diện (Suất -> Phim -> Phòng)
+            try {
+                await loadEffectiveStyles();
+            } catch(e) {
+                console.warn("Could not load effective styles:", e);
+            }
+                
+            if (roomData) {
+                // Cập nhật metadata vùng trung tâm
+                roomCentralMetadata = roomData.central_metadata;
+                if (typeof roomCentralMetadata === 'string') {
+                    try { roomCentralMetadata = JSON.parse(roomCentralMetadata); } catch(e) {}
+                }
+                highlightCentralZone();
+            }
         }
     } catch(e) {
-        map.innerHTML = '<div class="empty-state">Lỗi tải ghế!</div>';
+        console.error("selectRoom Error:", e);
+        map.innerHTML = `<div class="empty-state">Lỗi tải ghế: ${e.message}</div>`;
     }
 }
 
@@ -596,8 +811,8 @@ function handleCentralSelection(s) {
 function highlightCentralZone() {
     if (!roomCentralMetadata) return;
     const { row_start, row_end, num_start, num_end } = roomCentralMetadata;
-
     const centralSeats = [];
+
     document.querySelectorAll('.seat').forEach(el => {
         const code = el.textContent;
         const row = code[0];
@@ -727,13 +942,24 @@ function showAddRoomModal() {
 async function initRoomLayout() {
     if(!currentRoomId) return;
     const rows = prompt("Nhập số hàng ghế (Ví dụ: 10):", "10");
+    if(rows === null) return; // User cancelled
     const cols = prompt("Nhập số ghế mỗi hàng (Ví dụ: 12):", "12");
-    if(!rows || !cols || isNaN(rows) || isNaN(cols)) return;
+    if(cols === null) return; // User cancelled
+
+    const rowsNum = parseInt(rows);
+    const colsNum = parseInt(cols);
+
+    if(isNaN(rowsNum) || isNaN(colsNum) || rowsNum < 1 || colsNum < 1) {
+        return showToast("Số hàng và số ghế mỗi hàng phải là số nguyên dương (≥ 1)", "error");
+    }
+    if(rowsNum > 26) {
+        return showToast("Số hàng tối đa là 26 (A-Z)", "error");
+    }
 
     try {
         await API.post(`/showtimes/admin/rooms/${currentRoomId}/init`, {
-            rows: parseInt(rows),
-            cols: parseInt(cols)
+            rows: rowsNum,
+            cols: colsNum
         });
         showToast("Khởi tạo sơ đồ ghế thành công");
         loadRooms();
@@ -759,7 +985,7 @@ async function handleFileUpload(type) {
         const btn = document.getElementById(`btn-upload-${type}`);
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         
-        const res = await fetch(`${window.APP_CONFIG.API_BASE}/showtimes/uploads/actions/seats`, {
+        const res = await fetch(`${API.BASE}/uploads/actions/seats`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -772,6 +998,7 @@ async function handleFileUpload(type) {
             document.getElementById(`img-${type}`).value = data.url;
             btn.innerHTML = '<i class="fa-solid fa-check"></i>';
             btn.classList.add('success');
+            document.getElementById(`btn-remove-${type}`).style.display = 'flex';
             showToast("Tải ảnh lên thành công");
             updateTheme();
         } else {
@@ -784,6 +1011,16 @@ async function handleFileUpload(type) {
         const btn = document.getElementById(`btn-upload-${type}`);
         btn.innerHTML = '<i class="fa-solid fa-image"></i>';
     }
+}
+
+function removeImage(type) {
+    document.getElementById(`img-${type}`).value = '';
+    const btn = document.getElementById(`btn-upload-${type}`);
+    btn.innerHTML = '<i class="fa-solid fa-image"></i>';
+    btn.classList.remove('success');
+    document.getElementById(`btn-remove-${type}`).style.display = 'none';
+    showToast("Đã gỡ ảnh");
+    updateTheme();
 }
 
 document.addEventListener('DOMContentLoaded', initPage);

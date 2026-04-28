@@ -232,7 +232,10 @@ CREATE TABLE `movies` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Ngày tạo',
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'Ngày cập nhật',
   `is_hot` tinyint(1) DEFAULT 0,
-  `is_recommended` tinyint(1) DEFAULT 0
+  `is_recommended` tinyint(1) DEFAULT 0,
+  `seat_styles` text DEFAULT NULL COMMENT 'Cấu hình ghế theo phim',
+  `end_date` date DEFAULT NULL COMMENT 'Ngày rời rạp',
+  `revenue` decimal(15,2) DEFAULT 0 COMMENT 'Doanh thu'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -285,7 +288,8 @@ CREATE TABLE `rooms` (
   `id` int(11) NOT NULL COMMENT 'ID phòng chiếu',
   `cinema_id` int(11) NOT NULL COMMENT 'Thuộc rạp nào',
   `room_number` int(11) NOT NULL COMMENT 'Số phòng',
-  `room_name` varchar(50) DEFAULT NULL COMMENT 'Tên phòng'
+  `room_name` varchar(50) DEFAULT NULL COMMENT 'Tên phòng',
+  `seat_styles` text DEFAULT NULL COMMENT 'Cấu hình ghế mặc định'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -320,7 +324,8 @@ CREATE TABLE `showtimes` (
   `format_id` int(11) NOT NULL COMMENT 'Định dạng 2D 3D',
   `language_id` int(11) NOT NULL COMMENT 'Ngôn ngữ',
   `show_date_id` int(11) NOT NULL COMMENT 'Ngày chiếu',
-  `show_time` time NOT NULL COMMENT 'Giờ chiếu'
+  `show_time` time NOT NULL COMMENT 'Giờ chiếu',
+  `seat_styles` text DEFAULT NULL COMMENT 'Cấu hình ghế riêng cho suất chiếu'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -41,6 +41,7 @@ if (!$postId) {
 <script src="./assets/js/forum.js?v=<?php echo time(); ?>"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    const API_BASE = window.location.origin + "/api";
     const postId = "<?php echo $postId; ?>";
     const threadContent = document.getElementById("thread-content");
     const commentList = document.getElementById("comment-list");
@@ -54,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
         commentFormContainer.style.display = "block";
         const avatarPath = user.avatar ? (user.avatar.startsWith('/') ? user.avatar : '/' + user.avatar) : null;
         document.getElementById("comment-user-avatar").src = avatarPath 
-            ? `http://127.0.0.1:3000/api/auth${avatarPath}` 
+            ? `${API_BASE}/auth${avatarPath}` 
             : `https://ui-avatars.com/api/?name=${user.username}&background=e71a0f&color=fff`;
     }
 
@@ -62,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadThread() {
         try {
-            const res = await fetch(`http://127.0.0.1:3000/api/forum/posts/${postId}`, {
+            const res = await fetch(`${API_BASE}/forum/posts/${postId}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const post = await res.json();
@@ -78,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const timeStr = formatTime(post.created_at);
         const avatarPath = post.avatar ? (post.avatar.startsWith('/') ? post.avatar : '/' + post.avatar) : null;
         const avatar = avatarPath 
-            ? `http://127.0.0.1:3000/api/auth${avatarPath}` 
+            ? `${API_BASE}/auth${avatarPath}` 
             : "https://ui-avatars.com/api/?name=" + encodeURIComponent(post.username || "U") + "&background=e71a0f&color=fff";
 
         threadContent.innerHTML = `
@@ -141,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const timeStr = formatTime(c.created_at);
             const cp = c.avatar ? (c.avatar.startsWith('/') ? c.avatar : '/' + c.avatar) : null;
             const cv = cp 
-                ? `http://127.0.0.1:3000/api/auth${cp}` 
+                ? `${API_BASE}/auth${cp}` 
                 : "https://ui-avatars.com/api/?name=" + encodeURIComponent(c.username || "U") + "&background=e71a0f&color=fff";
             return `
                 <div class="comment-item">
@@ -165,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!text) return;
 
             try {
-                const res = await fetch(`http://127.0.0.1:3000/api/forum/posts/${postId}/comments`, {
+                const res = await fetch(`${API_BASE}/forum/posts/${postId}/comments`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

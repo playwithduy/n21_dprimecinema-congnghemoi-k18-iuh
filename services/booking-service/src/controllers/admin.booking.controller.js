@@ -52,6 +52,59 @@ exports.getAllBookings = async (req, res) => {
   }
 };
 
+// GET /api/booking/admin/tickets?page=1&status=&search=
+exports.getAllTickets = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status = "", search = "" } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    let conditions = [];
+    const params = [];
+
+    if (status) {
+      conditions.push("t.status = ?");
+      params.push(status);
+    }
+    if (search) {
+      conditions.push("(b.booking_code LIKE ? OR b.user_email LIKE ? OR sl.seat_code LIKE ?)");
+      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+    }
+
+    const where = conditions.length ? "WHERE " + conditions.join(" AND ") : "";
+
+    const [rows] = await db.query(`
+      SELECT 
+        t.id, t.booking_id, t.status, t.checkin_time, t.created_at,
+        b.booking_code, b.user_email,
+        m.title AS movie_title, 
+        st.show_time, sd.show_date,
+        r.room_name, sl.seat_code
+      FROM tickets t
+      JOIN bookings b ON t.booking_id = b.id
+      JOIN movie_db.showtimes st ON t.showtime_id = st.id
+      JOIN movie_db.show_dates sd ON st.show_date_id = sd.id
+      JOIN movie_db.movies m ON st.movie_id = m.id
+      JOIN movie_db.rooms r ON st.room_id = r.id
+      JOIN seat_layout sl ON t.seat_id = sl.id
+      ${where}
+      ORDER BY t.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [...params, parseInt(limit), offset]);
+
+    const [[{ total }]] = await db.query(`
+      SELECT COUNT(*) AS total 
+      FROM tickets t 
+      JOIN bookings b ON t.booking_id = b.id
+      ${where}
+    `, params);
+
+    res.json({ tickets: rows, total, page: parseInt(page) });
+  } catch (err) {
+    console.error("getAllTickets error:", err);
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+};
+
 // GET /api/booking/admin/bookings/:booking_code - Chi tiết 1 đơn
 exports.getBookingDetail = async (req, res) => {
   try {
@@ -309,10 +362,32 @@ exports.getDetailedStats = async (req, res) => {
       LIMIT 20
     `);
 
+    // 5. Genre Revenue
+    const [genreRevenue] = await db.query(`
+      SELECT m.genres as genre, SUM(b.final_total) as revenue
+      FROM bookings b
+      JOIN movie_db.showtimes st ON b.showtime_id = st.id
+      JOIN movie_db.movies m ON st.movie_id = m.id
+      WHERE b.payment_status = 'paid'
+      GROUP BY m.genres
+      ORDER BY revenue DESC
+    `);
+
+    // 6. Hourly Bookings (Heatmap data)
+    const [hourlyBookings] = await db.query(`
+      SELECT HOUR(created_at) as hour, COUNT(*) as count
+      FROM bookings
+      WHERE payment_status = 'paid' AND DATE(created_at) BETWEEN ? AND ?
+      GROUP BY hour
+      ORDER BY hour ASC
+    `, [fromDate, toDate]);
+
     res.json({
       dailyRevenue,
       monthlyRevenue: monthlyRevenue.reverse(),
       topMovies,
+      genreRevenue,
+      hourlyBookings,
       occupancy: occupancy.map(o => ({
         ...o,
         fill_rate: o.total_seats > 0 ? Math.round((o.booked_seats / o.total_seats) * 100) : 0
@@ -327,21 +402,33 @@ exports.getDetailedStats = async (req, res) => {
 // POST /api/booking/admin/checkin
 exports.checkinTicket = async (req, res) => {
   try {
-    const { ticket_id, hash } = req.body;
+    const { ticket_id, hash, ts } = req.body;
+    
     if (!ticket_id || !hash) {
       return res.status(400).json({ success: false, message: "Thiếu ticket_id hoặc hash" });
     }
 
-    // 1. Kiểm tra vé tồn tại và hash hợp lệ
+    // 1. Kiểm tra tính "tươi" của mã QR (Dynamic QR check)
+    const now = Date.now();
+    const expiryWindow = 60 * 60 * 1000; // 1 tiếng (3600 giây)
+    if (!ts || (now - ts) > expiryWindow) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Mã QR đã hết hạn (quá 1 tiếng). Vui lòng yêu cầu khách hàng làm mới trang vé." 
+      });
+    }
+
     const [[ticket]] = await db.query(`
       SELECT t.*, b.booking_code, b.user_email, st.show_time, sd.show_date,
-             m.title AS movie_title, r.room_name, sl.seat_code
+             m.title AS movie_title, r.room_name, sl.seat_code,
+             c.name AS cinema_name
       FROM tickets t
       JOIN bookings b ON t.booking_id = b.id
       JOIN movie_db.showtimes st ON t.showtime_id = st.id
       JOIN movie_db.show_dates sd ON st.show_date_id = sd.id
       JOIN movie_db.movies m ON st.movie_id = m.id
       JOIN movie_db.rooms r ON st.room_id = r.id
+      JOIN movie_db.cinemas c ON r.cinema_id = c.id
       JOIN seat_layout sl ON t.seat_id = sl.id
       WHERE t.id = ? AND t.qr_hash = ?
       LIMIT 1
@@ -369,6 +456,12 @@ exports.checkinTicket = async (req, res) => {
       [ticket_id]
     );
 
+    // 5. Lấy thêm thông tin bắp nước (Combos)
+    const [combos] = await db.query(
+      "SELECT combo_name, qty FROM booking_combos WHERE booking_id = ?",
+      [ticket.booking_id]
+    );
+
     res.json({
       success: true,
       message: "Check-in thành công! Mời vào rạp.",
@@ -376,11 +469,13 @@ exports.checkinTicket = async (req, res) => {
         id: ticket.id,
         booking_code: ticket.booking_code,
         movie_title: ticket.movie_title,
+        cinema_name: ticket.cinema_name, // Tên rạp
         room_name: ticket.room_name,
         seat_code: ticket.seat_code,
         show_time: ticket.show_time,
         show_date: showDate,
-        fullname: ticket.user_email || 'Khách hàng'
+        fullname: ticket.user_email || 'Khách hàng',
+        combos: combos || [] // Danh sách bắp nước
       }
     });
 

@@ -15,14 +15,15 @@
 
 <?php
 // Define base URL
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443 || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') || (isset($_SERVER['HTTP_X_FORWARDED_HOST']) && strpos($_SERVER['HTTP_X_FORWARDED_HOST'], 'ngrok') !== false) || strpos($_SERVER['HTTP_HOST'], 'ngrok') !== false) ? "https://" : "http://";
+$host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'];
 $baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/';
-$fullBaseUrl = $protocol . $_SERVER['HTTP_HOST'] . $baseUrl;
+$fullBaseUrl = $protocol . $host . $baseUrl;
 
 // --- SEO LOGIC ---
 $seoTitle = "D PRIME CINEMA - Premium Movie Experience";
 $seoDesc  = "Trải nghiệm điện ảnh đỉnh cao tại D PRIME CINEMA. Đặt vé trực tuyến, xem lịch chiếu và cập nhật tin tức phim mới nhất.";
-$currentUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+$currentUrl = $protocol . $host . $_SERVER['REQUEST_URI'];
 
 $slug = $_GET['slug'] ?? '';
 if ($slug) {
@@ -90,6 +91,7 @@ if ($slug) {
 <link rel="stylesheet" href="./assets/css/toast.css?v=<?php echo $v; ?>">
 <link rel="stylesheet" href="./assets/css/skeleton.css?v=<?php echo $v; ?>">
 <link rel="stylesheet" href="./assets/css/chatbot.css?v=<?php echo $v; ?>">
+<link rel="stylesheet" href="./assets/css/voice-assistant.css?v=<?php echo $v; ?>">
 <link id="dynamic-favicon" rel="icon" href="./assets/images/logo.png" type="image/png">
 
 <!-- Favicon Animation Script -->
@@ -110,7 +112,8 @@ if ($slug) {
 <script src="./assets/js/url-helper.js?v=<?php echo $js_v; ?>"></script>
 <script src="./assets/js/i18n.js?v=<?php echo $js_v; ?>"></script>
 <script src="./assets/js/toast.js?v=<?php echo $js_v; ?>"></script>
-<script src="./assets/js/gemini-bot.js?v=<?php echo $js_v; ?>"></script>
+<script src="./assets/js/chatbot.js?v=<?php echo $js_v; ?>"></script>
+<script src="./assets/js/voice-assistant.js?v=<?php echo $js_v; ?>"></script>
 </head>
 
 
@@ -190,6 +193,7 @@ if ($slug) {
 </div>
 <a href="index.php?p=YmxvZw=="><i class="fa-solid fa-blog"></i> <span data-i18n="nav_blog">BLOG</span></a>
 <a href="index.php?p=Zm9ydW0="><i class="fa-solid fa-comments"></i> <span data-i18n="nav_forum">DIỄN ĐÀN</span></a>
+<a href="index.php?p=c2hvcA==" class="nav-highlight"><i class="fa-solid fa-store"></i> <span data-i18n="nav_shop">SHOP ĐIỂM THƯỞNG</span></a>
 </nav>
 
 <div class="buy-ticket">
@@ -205,9 +209,9 @@ if ($slug) {
 
 <script>
 window.APP_CONFIG = { 
-  API_BASE: window.location.protocol + '//' + window.location.hostname + ':3000/api',
-  WS_URL: 'ws://' + window.location.hostname + ':3005',
-  UPLOAD_BASE: window.location.protocol + '//' + window.location.hostname + ':3000/uploads'
+  API_BASE: window.location.protocol + '//' + window.location.host + '/api',
+  WS_URL: (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/socket.io/',
+  UPLOAD_BASE: window.location.protocol + '//' + window.location.host + '/uploads'
 };
 
 document.addEventListener("DOMContentLoaded", function(){
@@ -266,7 +270,7 @@ document.addEventListener("DOMContentLoaded", function(){
     }
 
     authArea.innerHTML = `
-      <a href="index.php?p=bXktdGlja2V0cw=="><i class="fa-solid fa-ticket"></i> Vé của tôi</a>
+      <a href="index.php?p=bXktdGlja2V0cw=="><i class="fa-solid fa-ticket"></i> <span data-i18n="my_tickets">Vé của tôi</span></a>
 
       <div class="header-icons">
         <i class="fa-solid fa-moon" id="darkToggle"></i>
@@ -280,9 +284,9 @@ document.addEventListener("DOMContentLoaded", function(){
         ${avatarHtml}
         <span>${user.fullname}</span>
         <div class="user-dropdown">
-          <a href="index.php?p=YWNjb3VudA=="><i class="fa-solid fa-user"></i> Hồ sơ</a>
-          <a href="index.php?p=bXktdGlja2V0cw=="><i class="fa-solid fa-ticket"></i> Vé của tôi</a>
-          <a href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
+          <a href="index.php?p=YWNjb3VudA=="><i class="fa-solid fa-user"></i> <span data-i18n="profile">Hồ sơ</span></a>
+          <a href="index.php?p=bXktdGlja2V0cw=="><i class="fa-solid fa-ticket"></i> <span data-i18n="my_tickets">Vé của tôi</span></a>
+          <a href="#" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="logout">Đăng xuất</span></a>
         </div>
       </div>
 

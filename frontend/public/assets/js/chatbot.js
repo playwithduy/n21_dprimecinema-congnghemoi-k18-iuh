@@ -1,117 +1,210 @@
-/* AI CHATBOT & REAL-TIME PULSE LOGIC */
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. CHATBOT LOGIC
-    const widget = document.createElement('div');
-    widget.className = 'ai-chat-widget';
-    widget.innerHTML = `
-        <div class="chat-window" id="chatWindow">
-            <div class="chat-header">
-                <img src="./assets/images/logo.png" alt="Bot">
-                <div class="status"></div>
-                <div>
-                    <strong style="display:block;font-size:14px;">D'PRIME AI Assistant</strong>
-                    <small style="font-size:10px;opacity:0.7;">Online | Sẵn sàng hỗ trợ</small>
-                </div>
-            </div>
-            <div class="chat-body" id="chatBody">
-                <div class="chat-msg bot">Xin chào! Tôi là trợ lý ảo của D'PRIME. Tôi có thể giúp gì cho bạn hôm nay?</div>
-            </div>
-            <form class="chat-input-area" id="chatForm">
-                <input type="text" id="chatInput" placeholder="Nhập câu hỏi của bạn..." autocomplete="off">
-                <button type="submit" class="chat-send"><i class="fa-solid fa-paper-plane"></i></button>
-            </form>
+    // Inject HTML dynamically
+    const html = `
+    <!-- CHATBOT TRIGGER -->
+    <div class="chat-trigger-btn" id="chatTrigger" title="${window.t('chat_trigger_title')}" data-i18n="chat_trigger_title">
+      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="AI Chatbot" class="chat-trigger-icon">
+    </div>
+
+    <!-- CHAT UI -->
+    <div id="dprime-chatbot">
+      <div class="chat-header">
+        <span data-i18n="chat_header">${window.t('chat_header')}</span>
+        <button class="chat-close-btn" id="chatClose">&times;</button>
+      </div>
+      <div class="chat-body" id="chatBody">
+        <div class="chat-row bot">
+          <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="chat-avatar" alt="bot">
+          <div class="chat-msg bot" data-i18n="chat_welcome">
+            ${window.t('chat_welcome')}
+          </div>
         </div>
-        <div class="chat-bubble" id="chatBubble">
-            <i class="fa-solid fa-robot"></i>
+      </div>
+      <div class="chat-footer">
+        <div class="chat-input-wrapper">
+          <input type="text" id="chatInput" class="chat-input" placeholder="${window.t('chat_placeholder')}" data-i18n="chat_placeholder" autocomplete="off">
+          <button id="chatSubmit" class="chat-submit">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
         </div>
+      </div>
+    </div>
     `;
-    document.body.appendChild(widget);
 
-    const bubble = document.getElementById('chatBubble');
-    const chatBox = document.getElementById('chatWindow');
-    const form = document.getElementById('chatForm');
-    const input = document.getElementById('chatInput');
-    const body = document.getElementById('chatBody');
+    document.body.insertAdjacentHTML('beforeend', html);
 
-    bubble.onclick = () => chatBox.classList.toggle('active');
+    const trigger = document.getElementById("chatTrigger");
+    const closeBtn = document.getElementById("chatClose");
+    const chatbot = document.getElementById("dprime-chatbot");
+    const chatInput = document.getElementById("chatInput");
+    const chatSubmit = document.getElementById("chatSubmit");
+    const chatBody = document.getElementById("chatBody");
 
-    const responses = {
-        "gia ve": "Chào bạn, giá vé tại D'PRIME dao động từ 80.000đ đến 150.000đ tùy vào loại ghế và định dạng phim (2D/3D). Bạn có muốn tôi hướng dẫn cách đặt vé không?",
-        "khuyen mai": "D'PRIME đang có chương trình 'Thứ 2 siêu rẻ' chỉ 60k/vé và combo bắp nước ưu đãi cho thành viên mới đó!",
-        "dia chi": "D'PRIME Cinema hiện có các chi nhánh tại các quận trung tâm. Bạn có thể xem danh sách rạp ở phần 'Hệ Thống Rạp' nhé.",
-        "dat ve": "Để đặt vé, bạn chỉ cần chọn phim yêu thích, chọn suất chiếu và chỗ ngồi. Sau đó thanh toán qua ví điện tử hoặc thẻ ngân hàng là xong!",
-        "phim hot": "Hiện tại 'Nhà Trấn Quỷ' và 'Tiểu Yêu Quái' đang rất hot và cháy vé liên tục đó bạn ơi!",
-        "hello": "Hi there! How can I help you today?",
-        "hi": "Chào bạn! Chúc bạn một ngày tốt lành. Bạn cần hỗ trợ gì về lịch chiếu phim không?"
-    };
+    trigger.addEventListener("click", () => {
+        chatbot.classList.add("open");
+        setTimeout(() => chatInput.focus(), 300);
+    });
 
-    form.onsubmit = (e) => {
-        e.preventDefault();
-        const msg = input.value.trim();
-        if(!msg) return;
+    closeBtn.addEventListener("click", () => {
+        chatbot.classList.remove("open");
+    });
 
-        // User message
-        addMessage(msg, 'user');
-        input.value = '';
-
-        // Bot thinking...
-        setTimeout(() => {
-            const botReply = getReply(msg);
-            addMessage(botReply, 'bot');
-        }, 1000);
-    };
-
-    function addMessage(text, side) {
-        const div = document.createElement('div');
-        div.className = `chat-msg ${side}`;
-        div.innerText = text;
-        body.appendChild(div);
-        body.scrollTop = body.scrollHeight;
+    function saveToLocalStorage(type, content) {
+        let history = JSON.parse(localStorage.getItem("chat_history") || "[]");
+        history.push({ type, ...content });
+        localStorage.setItem("chat_history", JSON.stringify(history));
     }
 
-    function getReply(msg) {
-        msg = msg.toLowerCase();
-        
-        // 1. CHÀO HỎI & CÁ NHÂN HÓA
-        if (msg.includes("tao là") || msg.includes("tên tôi là") || msg.includes("tôi là")) {
-            const name = msg.split("là")[1].trim();
-            return `Chào ${name}! Rất vui được gặp bạn. Tôi là trợ lý Gemini của D'PRIME. Bạn cần tôi tư vấn phim gì cho hôm nay không?`;
-        }
-        if (msg.includes("hello") || msg.includes("hi") || msg.includes("chào")) {
-            return "Chào bạn! Tôi là Gemini Assistant của D'PRIME. Tôi có thể giúp bạn tìm phim hay, kiểm tra giá vé hoặc tư vấn rạp gần nhất. Bạn muốn hỏi gì nào?";
-        }
-
-        // 2. TƯ VẤN PHIM & GIÁ VÉ
-        for(let key in responses) {
-            if(msg.includes(key)) return responses[key];
-        }
-
-        // 3. XỬ LÝ THÔNG MINH (FALLBACK)
-        const fallbacks = [
-            "Câu hỏi của bạn rất hay! Về vấn đề này, D'PRIME luôn ưu tiên trải nghiệm tốt nhất cho bạn. Bạn có muốn biết thêm về lịch chiếu phim hot tuần này không?",
-            "Tôi đang học thêm để hiểu ý bạn hơn. Hiện tại tôi có thể giúp bạn về giá vé, phim hot và ưu đãi. Bạn thử hỏi tôi về 'khuyến mãi' xem sao?",
-            "Rất tiếc tôi chưa hiểu rõ ý bạn, nhưng tôi chắc chắn rằng xem phim tại D'PRIME sẽ không làm bạn thất vọng! Thử hỏi tôi về 'phim hot' nhé!"
-        ];
-        return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    function loadLocalStorageHistory() {
+        const history = JSON.parse(localStorage.getItem("chat_history") || "[]");
+        history.forEach(item => {
+            if (item.type === "text") {
+                appendMessage(item.sender, item.text, true);
+            } else if (item.type === "movies") {
+                appendMovies(item.movies, true);
+            }
+        });
     }
 
-    // 2. REAL-TIME BOOKING PULSE (SOCIAL PROOF)
-    const bookingMsgs = [
-        "Anh Nguyễn vừa đặt 2 vé xem 'Nhà Trấn Quỷ'",
-        "Chị Lan vừa đặt Combo Bắp Nước ưu đãi",
-        "Có 5 người đang xem phim 'Tiểu Yêu Quái' tại rạp Quận 1",
-        "Một khách hàng vừa đăng ký thành viên VIP",
-        "Vé phim 'Cứu' đang được đặt rất nhanh!"
-    ];
+    function appendMessage(sender, text, isHistory = false) {
+        const row = document.createElement("div");
+        row.className = `chat-row ${sender}`;
 
-    function showPulse() {
-        const msg = bookingMsgs[Math.floor(Math.random() * bookingMsgs.length)];
-        Toast.info(msg, "Real-time Activity");
-        
-        // Random next pulse
-        setTimeout(showPulse, Math.random() * 20000 + 15000); // 15-35 seconds
+        let avatarUrl = "https://cdn-icons-png.flaticon.com/512/4712/4712035.png"; // Default bot
+        if (sender === "user") {
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    // Dùng avatar từ auth-service nếu có
+                    if (user.avatar) {
+                        avatarUrl = getAssetUrl(user.avatar);
+                    } else {
+                        avatarUrl = getAssetUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png"); // Default user
+                    }
+                } catch (e) {
+                    avatarUrl = getAssetUrl("https://cdn-icons-png.flaticon.com/512/149/149071.png");
+                }
+            } else {
+                avatarUrl = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            }
+        }
+
+        const avatarImg = `<img src="${avatarUrl}" class="chat-avatar" alt="${sender}">`;
+
+        // Tự động nhận diện link và chuyển thành thẻ <a> cho người dùng click
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const formattedText = text.replace(urlRegex, (url) => {
+            return `<a href="${url}" target="_blank" style="color: #64b5f6; text-decoration: underline; word-break: break-all;">${url}</a>`;
+        });
+
+        row.innerHTML = `
+            ${avatarImg}
+            <div class="chat-msg ${sender}">${formattedText}</div>
+        `;
+
+        chatBody.appendChild(row);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        if (!isHistory) {
+            saveToLocalStorage("text", { sender, text });
+        }
     }
 
-    // Start pulse after 5 seconds
-    setTimeout(showPulse, 5000);
+    function encodeBase64(str) {
+        return btoa(unescape(encodeURIComponent(str)));
+    }
+
+    function appendMovies(movies, isHistory = false) {
+        if (!movies || movies.length === 0) return;
+
+        const row = document.createElement("div");
+        row.className = "chat-row bot";
+
+        const avatarUrl = "https://cdn-icons-png.flaticon.com/512/4712/4712035.png";
+        const avatarImg = `<img src="${avatarUrl}" class="chat-avatar" alt="bot">`;
+
+        const listDiv = document.createElement("div");
+        listDiv.className = "chat-movie-list";
+
+        movies.forEach(m => {
+            const pageParam = encodeBase64("movie");
+            const card = document.createElement("a");
+            card.href = `index.php?p=${pageParam}&slug=${m.slug}`;
+            card.className = "chat-movie-card";
+            const posterUrl = m.poster ? window.getAssetUrl(m.poster) : './assets/images/default.jpg';
+            card.innerHTML = `
+                <img src="${posterUrl}" class="chat-movie-poster" alt="poster">
+                <div class="chat-movie-info">
+                    <div class="chat-movie-title">${m.title}</div>
+                    <div class="chat-movie-meta">${m.duration || '?'} phút • ${m.age_limit || 0}+</div>
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
+
+        row.innerHTML = `
+            ${avatarImg}
+            <div style="flex: 1;">${listDiv.outerHTML}</div>
+        `;
+
+        chatBody.appendChild(row);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        if (!isHistory) {
+            saveToLocalStorage("movies", { movies });
+        }
+    }
+
+    // Load lịch sử cũ nếu có
+    loadLocalStorageHistory();
+
+    async function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        appendMessage("user", text);
+        chatInput.value = "";
+
+        const rowLoad = document.createElement("div");
+        rowLoad.className = `chat-row bot loading-row`;
+        rowLoad.innerHTML = `
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" class="chat-avatar" alt="bot">
+            <div class="chat-msg bot loading">Đang tra cứu...</div>
+        `;
+        chatBody.appendChild(rowLoad);
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        try {
+            const API_BASE = window.location.origin + "/api";
+            const res = await fetch(`${API_BASE}/movies/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+
+            chatBody.removeChild(rowLoad);
+
+            if (data.reply) {
+                appendMessage("bot", data.reply);
+            }
+            if (data.movies && data.movies.length > 0) {
+                appendMovies(data.movies);
+            }
+
+        } catch (err) {
+            if (chatBody.contains(rowLoad)) chatBody.removeChild(rowLoad);
+            appendMessage("bot", "Oops, mình đang bị mất kết nối tới kho phim. Bạn thử lại sau nhé!");
+        }
+    }
+
+    chatSubmit.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            sendMessage();
+        }
+    });
 });

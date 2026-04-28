@@ -310,9 +310,24 @@ body {
 .box.selected { background: linear-gradient(145deg, #22c55e, #16a34a); box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
 .box.disabled { background: linear-gradient(145deg, #1f1f1f, #111111); border: 1px solid #333; }
 
-.box.green { background: linear-gradient(145deg, #2a2a35, #1f1f27); border: 1px solid #4b5563; }
-.box.red { background: linear-gradient(145deg, #4a1c20, #371518); border: 1px solid #e50914; }
-.box.pink { background: linear-gradient(145deg, #5a1e5c, #421644); border: 1px solid #ff4da6; }
+.box.green { 
+    background: var(--seat-normal, linear-gradient(145deg, #2a2a35, #1f1f27)); 
+    background-image: var(--img-normal, none);
+    background-size: cover;
+    border: 1px solid #4b5563; 
+}
+.box.red { 
+    background: var(--seat-vip, linear-gradient(145deg, #4a1c20, #371518)); 
+    background-image: var(--img-vip, none);
+    background-size: cover;
+    border: 1px solid #e50914; 
+}
+.box.pink { 
+    background: var(--seat-sweetbox, linear-gradient(145deg, #5a1e5c, #421644)); 
+    background-image: var(--img-sweetbox, none);
+    background-size: cover;
+    border: 1px solid #ff4da6; 
+}
 .box.central { border: 2px dashed #2ecc71; background: rgba(46, 204, 113, 0.2); }
 
 /* ================= FOOTER ================= */
