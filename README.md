@@ -39,8 +39,11 @@ Real-time
 - Diễn đàn & cộng đồng
 - Blog & tin tức
 - Chatbot AI
+<<<<<<< HEAD
 - Vé điện tử
 - Bình luận phim
+=======
+>>>>>>> bcf7583 (Fix: update API URL for production deployment)
 
 Bảng điều khiển Quản trị (Admin Dashboard)
 - Bảng điều khiển thống kê

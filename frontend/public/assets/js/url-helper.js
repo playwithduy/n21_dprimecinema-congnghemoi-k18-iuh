@@ -24,13 +24,17 @@ const UrlHelper = {
     },
     
     /**
-     * Get full URL for an asset, ensuring it points to the API Gateway port 3000 if relative
+     * Get full URL for an asset, ensuring it points to the API Gateway
      */
     getAssetUrl: function(path) {
         if (!path) return "";
         if (path.startsWith('http')) return path;
-        const gateway = window.location.protocol + "//" + window.location.hostname + ":3000";
-        // Ensure path starts with /
+        
+        // Nếu là localhost thì dùng port 3000, nếu là domain/ngrok thì dùng /api qua Nginx
+        const gateway = window.location.hostname === 'localhost' 
+            ? window.location.protocol + "//" + window.location.hostname + ":3000"
+            : window.location.origin + "/api";
+            
         const normalizedPath = path.startsWith('/') ? path : '/' + path;
         return gateway + normalizedPath;
     },

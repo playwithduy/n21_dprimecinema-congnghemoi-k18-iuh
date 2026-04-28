@@ -1,0 +1,125 @@
+services:
+  db-main:
+    image: mysql:8.0
+    container_name: dprime-db-main
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: movie_db
+    volumes:
+      - ./sql/auth_db.sql:/docker-entrypoint-initdb.d/01-auth.sql
+      - ./sql/movie_db.sql:/docker-entrypoint-initdb.d/02-movie.sql
+      - ./sql/booking_db.sql:/docker-entrypoint-initdb.d/03-booking.sql
+      - db_main_data:/var/lib/mysql
+    networks:
+      - dprime-network
+
+  # Reverse Proxy (Nginx)
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: dprime-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web-frontend
+      - api-gateway
+    networks:
+      - dprime-network
+
+  api-gateway:
+    image: 131020047979/n25-api-gateway:latest
+    container_name: dprime-api-gateway
+    depends_on:
+      - auth-service
+      - movie-service
+      - booking-service
+    networks:
+      - dprime-network
+
+  auth-service:
+    image: 131020047979/n25-auth-service:latest
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  movie-service:
+    image: 131020047979/n25-movie-service:latest
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  booking-service:
+    image: 131020047979/n25-booking-service:latest
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  blog-service:
+    image: 131020047979/n25-blog-service:latest
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  forum-service:
+    image: 131020047979/n25-forum-service:latest
+    environment:
+      - DB_HOST=db-main
+      - DB_USER=root
+      - DB_PASSWORD=root_password
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  socket-service:
+    image: 131020047979/n25-socket-service:latest
+    ports:
+      - "3005:3005"
+    depends_on:
+      - db-main
+    networks:
+      - dprime-network
+
+  web-frontend:
+    image: 131020047979/n25-frontend:latest
+    container_name: dprime-web-frontend
+    networks:
+      - dprime-network
+
+  # Vì Admin không có trong CI/CD Docker Hub, chúng ta sẽ cho phép nó build tại chỗ
+  web-admin:
+    build:
+      context: ../admin
+    container_name: dprime-web-admin
+    ports:
+      - "8080:80"
+    networks:
+      - dprime-network
+
+networks:
+  dprime-network:
+    driver: bridge
+
+volumes:
+  db_main_data:

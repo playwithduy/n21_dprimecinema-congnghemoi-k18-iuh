@@ -1,0 +1,8 @@
+version: "2"
+# Thay authtoken của bạn vào đây
+# authtoken: YOUR_NGROK_AUTH_TOKEN
+tunnels:
+  dprime-app:
+    proto: http
+    addr: 80
+    domain: "" # Nếu bạn có domain cố định của ngrok thì điền vào đây
